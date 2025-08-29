@@ -1,103 +1,189 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import PeopleList from "./components/PeopleList";
+import ControlPanel from "./components/ControlPanel";
+import TrackingAreas from "./components/TrackingAreas";
+import PersonDetailsModal from "./components/PersonDetailsModal";
+import { fetchTrackingData, simulateAlarm } from "./services/trackingService";
+import IndoorFloorPlan from "./components/IndoorFloorPlan";
+
+// Importación dinámica del plano real para evitar problemas de SSR
+const RealFloorPlan = dynamic(() => import("./components/RealFloorPlan"), {
+  ssr: false,
+  loading: () =>
+    <div className="w-full h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
+        <p className="text-gray-600">Cargando plano real...</p>
+      </div>
+    </div>
+});
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [people, setPeople] = useState([]);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [selectedFloor, setSelectedFloor] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedView, setSelectedView] = useState("real");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Función para actualizar la lista de personas
+  const handlePeopleUpdate = updatedPeople => {
+    setPeople(updatedPeople);
+  };
+
+  // Función para seleccionar una persona
+  const handlePersonSelect = person => {
+    setSelectedPerson(person);
+    setIsModalOpen(true);
+  };
+
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPerson(null);
+  };
+
+  // Función para refrescar datos manualmente
+  const handleRefreshData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetchTrackingData();
+      if (response.success) {
+        setPeople(response.data);
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error("Error al refrescar datos:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función para simular alarma
+  const handleSimulateAlarm = async () => {
+    try {
+      if (people.length > 0) {
+        const randomPerson = people[Math.floor(Math.random() * people.length)];
+        await simulateAlarm(randomPerson.id);
+        // Refrescar datos después de simular la alarma
+        await handleRefreshData();
+      }
+    } catch (err) {
+      console.error("Error al simular alarma:", err);
+    }
+  };
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    handleRefreshData();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                DigiPlus Indoor Tracking
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Sistema de monitoreo en tiempo real de personas en espacios
+                interiores
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                {/* <div className="text-sm text-gray-500">
+                  Última actualización
+                </div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {new Date().toLocaleTimeString()}
+                </div> */}
+              </div>
+
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+            </div>
+          </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex flex-col gap-6">
+          {/* Panel de Control - Columna izquierda */}
+          {/* <div className="lg:col-span-1 space-y-6">
+            <ControlPanel
+              people={people}
+              onRefreshData={handleRefreshData}
+              onSimulateAlarm={handleSimulateAlarm}
+            />
+
+            <PeopleList people={people} onPersonSelect={handlePersonSelect} />
+          </div> */}
+
+          {/* Plano Real - Columna central */}
+          <div className="">
+            <div className="flex justify-end gap-4 mb-4">
+              <button
+                className={`px-4 py-2 rounded transition-colors ${selectedView ===
+                "real"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                onClick={() => setSelectedView("real")}
+              >
+                Plano Real
+              </button>
+              <button
+                className={`px-4 py-2 rounded transition-colors ${selectedView ===
+                "indoor"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                onClick={() => setSelectedView("indoor")}
+              >
+                Plano Indoor
+              </button>
+            </div>
+            {selectedView === "real"
+              ? <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  <RealFloorPlan
+                    onPeopleUpdate={handlePeopleUpdate}
+                    onPersonSelect={handlePersonSelect}
+                    selectedFloor={selectedFloor}
+                    onFloorChange={setSelectedFloor}
+                  />
+                </div>
+              : <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  <IndoorFloorPlan
+                    onPeopleUpdate={handlePeopleUpdate}
+                    onPersonSelect={handlePersonSelect}
+                    selectedFloor={selectedFloor}
+                    onFloorChange={setSelectedFloor}
+                  />
+                </div>}
+          </div>
+
+          {/* Áreas de Tracking - Columna derecha */}
+          <div className="">
+            <TrackingAreas people={people} selectedFloor={selectedFloor} />
+          </div>
+        </div>
+
+        {/* Modal de detalles de la persona */}
+        <PersonDetailsModal
+          person={selectedPerson}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
