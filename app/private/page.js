@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import PeopleList from "@/app/components/PeopleList";
-import ControlPanel from "@/app/components/ControlPanel";
-import TrackingAreas from "@/app/components/TrackingAreas";
+// import dynamic from "next/dynamic";
+// import PeopleList from "@/app/components/PeopleList";
+// import ControlPanel from "@/app/components/ControlPanel";
+// import TrackingAreas from "@/app/components/TrackingAreas";
 import PersonDetailsModal from "@/app/components/PersonDetailsModal";
 import {
   fetchTrackingData,
@@ -13,16 +13,16 @@ import {
 import IndoorFloorPlan from "@/app/components/IndoorFloorPlan";
 
 // Importación dinámica del plano real para evitar problemas de SSR
-const RealFloorPlan = dynamic(() => import("@/app/components/RealFloorPlan"), {
-  ssr: false,
-  loading: () =>
-    <div className="w-full h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
-        <p className="text-gray-600">Cargando plano real...</p>
-      </div>
-    </div>
-});
+// const RealFloorPlan = dynamic(() => import("@/app/components/RealFloorPlan"), {
+//   ssr: false,
+//   loading: () =>
+//     <div className="w-full h-screen flex items-center justify-center">
+//       <div className="text-center">
+//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
+//         <p className="text-gray-600">Cargando plano real...</p>
+//       </div>
+//     </div>
+// });
 
 export default function Home() {
   const [people, setPeople] = useState([]);
@@ -88,9 +88,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen ">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      {/* <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -104,20 +104,11 @@ export default function Home() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="text-right">
-                {/* <div className="text-sm text-gray-500">
-                  Última actualización
-                </div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {new Date().toLocaleTimeString()}
-                </div> */}
-              </div>
-
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
@@ -135,7 +126,7 @@ export default function Home() {
 
           {/* Plano Real - Columna central */}
           <div className="">
-            <div className="flex justify-end gap-4 mb-4">
+            {/* <div className="flex justify-end gap-4 mb-4">
               <button
                 className={`px-4 py-2 rounded transition-colors ${selectedView ===
                 "real"
@@ -154,30 +145,19 @@ export default function Home() {
               >
                 Plano Indoor
               </button>
-            </div>
-            {selectedView === "real"
-              ? <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <RealFloorPlan
-                    onPeopleUpdate={handlePeopleUpdate}
-                    onPersonSelect={handlePersonSelect}
-                    selectedFloor={selectedFloor}
-                    onFloorChange={setSelectedFloor}
-                  />
-                </div>
-              : <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <IndoorFloorPlan
-                    onPeopleUpdate={handlePeopleUpdate}
-                    onPersonSelect={handlePersonSelect}
-                    selectedFloor={selectedFloor}
-                    onFloorChange={setSelectedFloor}
-                  />
-                </div>}
+            </div> */}
+            <IndoorFloorPlan
+              onPeopleUpdate={handlePeopleUpdate}
+              onPersonSelect={handlePersonSelect}
+              selectedFloor={selectedFloor}
+              onFloorChange={setSelectedFloor}
+            />
           </div>
 
           {/* Áreas de Tracking - Columna derecha */}
-          <div className="">
+          {/* <div className="">
             <TrackingAreas people={people} selectedFloor={selectedFloor} />
-          </div>
+          </div> */}
         </div>
 
         {/* Modal de detalles de la persona */}

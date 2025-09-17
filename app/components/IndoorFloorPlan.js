@@ -26,38 +26,57 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
     }
   };
 
-  // Configuración del plano indoor
+  // Configuración del plano indoor basado en la imagen
   const floorPlanConfig = {
     1: {
-      name: "Planta Baja",
+      name: "Planta Principal",
       rooms: [
-        { id: "office1", name: "Oficina Abierta", x: 100, y: 100, width: 200, height: 150, type: "office" },
-        { id: "meeting1", name: "Sala de Reuniones", x: 350, y: 100, width: 150, height: 120, type: "meeting" },
-        { id: "reception", name: "Recepción", x: 100, y: 300, width: 120, height: 80, type: "reception" },
-        { id: "elevator1", name: "Elevador 1", x: 300, y: 300, width: 40, height: 60, type: "elevator" },
-        { id: "elevator2", name: "Elevador 2", x: 350, y: 300, width: 40, height: 60, type: "elevator" },
-        { id: "parking", name: "Estacionamiento", x: 500, y: 100, width: 300, height: 200, type: "parking" },
-        { id: "warehouse", name: "Almacén", x: 500, y: 350, width: 250, height: 150, type: "warehouse" }
-      ]
-    },
-    2: {
-      name: "Primer Piso",
-      rooms: [
-        { id: "executive", name: "Oficina Ejecutiva", x: 100, y: 100, width: 150, height: 120, type: "executive" },
-        { id: "conference", name: "Sala de Conferencias", x: 300, y: 100, width: 200, height: 150, type: "conference" },
-        { id: "cafe", name: "Cafetería", x: 100, y: 300, width: 120, height: 80, type: "cafe" },
-        { id: "elevator1_2", name: "Elevador 1", x: 300, y: 300, width: 40, height: 60, type: "elevator" },
-        { id: "elevator2_2", name: "Elevador 2", x: 350, y: 300, width: 40, height: 60, type: "elevator" }
-      ]
-    },
-    3: {
-      name: "Segundo Piso",
-      rooms: [
-        { id: "waiting", name: "Área de Espera", x: 100, y: 100, width: 250, height: 120, type: "waiting" },
-        { id: "gate3", name: "Puerta 3", x: 400, y: 100, width: 100, height: 80, type: "gate" },
-        { id: "security", name: "Control de Seguridad", x: 100, y: 300, width: 150, height: 100, type: "security" },
-        { id: "elevator1_3", name: "Elevador 1", x: 300, y: 300, width: 40, height: 60, type: "elevator" },
-        { id: "elevator2_3", name: "Elevador 2", x: 350, y: 300, width: 40, height: 60, type: "elevator" }
+        // Living (área grande a la izquierda)
+        { id: "living", name: "Living", x: 50, y: 200, width: 300, height: 250, type: "living" },
+        
+        // Pieza 4 (arriba al centro)
+        { id: "pieza4", name: "Pieza 4", x: 400, y: 50, width: 200, height: 120, type: "bedroom" },
+        
+        // Pieza 3 (centro derecha)
+        { id: "pieza3", name: "Pieza 3", x: 550, y: 200, width: 200, height: 150, type: "bedroom" },
+        
+        // Pieza 2 (derecha)
+        { id: "pieza2", name: "Pieza 2", x: 750, y: 200, width: 120, height: 150, type: "bedroom" },
+        
+        // Pieza 1 (abajo derecha)
+        { id: "pieza1", name: "Pieza 1", x: 750, y: 400, width: 120, height: 150, type: "bedroom" },
+        
+        // Despensa (abajo izquierda)
+        { id: "despensa", name: "Despensa", x: 50, y: 480, width: 120, height: 100, type: "pantry" },
+        
+        // Pieza 5 (centro abajo)
+        { id: "pieza5", name: "Pieza 5", x: 400, y: 480, width: 120, height: 100, type: "bedroom" },
+        
+        // Baño 2 (centro abajo)
+        { id: "bano2", name: "Baño 2", x: 550, y: 480, width: 80, height: 100, type: "bathroom" },
+        
+        // Baño 1 (centro abajo)
+        { id: "bano1", name: "Baño 1", x: 650, y: 480, width: 80, height: 100, type: "bathroom" },
+        
+        // Cocina (abajo centro-derecha)
+        { id: "cocina", name: "Cocina", x: 200, y: 580, width: 450, height: 120, type: "kitchen" }
+      ],
+      doors: [
+        // Puertas exteriores
+        { x: 620, y: 50, width: 15, height: 30, type: "exterior" },
+        { x: 870, y: 350, width: 30, height: 15, type: "exterior" },
+        { x: 870, y: 750, width: 30, height: 15, type: "exterior" },
+        { x: 200, y: 750, width: 30, height: 15, type: "exterior" }
+      ],
+      windows: [
+        // Ventanas exteriores
+        { x: 50, y: 250, width: 15, height: 40, type: "window" },
+        { x: 50, y: 350, width: 15, height: 40, type: "window" },
+        { x: 870, y: 250, width: 15, height: 40, type: "window" },
+        { x: 870, y: 450, width: 15, height: 40, type: "window" },
+        { x: 450, y: 50, width: 40, height: 15, type: "window" },
+        { x: 250, y: 720, width: 40, height: 15, type: "window" },
+        { x: 550, y: 720, width: 40, height: 15, type: "window" }
       ]
     }
   };
@@ -93,14 +112,17 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
   const convertToIndoorPosition = (gpsPosition, department) => {
     // Simular posiciones dentro de las habitaciones según el departamento
     const roomMap = {
-      "Desarrollo": { floor: 1, room: "office1" },
-      "Marketing": { floor: 1, room: "office1" },
-      "Ventas": { floor: 1, room: "meeting1" },
-      "Recursos Humanos": { floor: 2, room: "executive" },
-      "Finanzas": { floor: 2, room: "conference" }
+      "Desarrollo": { floor: 1, room: "living" },
+      "Marketing": { floor: 1, room: "pieza3" },
+      "Ventas": { floor: 1, room: "pieza2" },
+      "Recursos Humanos": { floor: 1, room: "pieza1" },
+      "Finanzas": { floor: 1, room: "pieza4" },
+      "Administración": { floor: 1, room: "pieza5" },
+      "Cocina": { floor: 1, room: "cocina" },
+      "Limpieza": { floor: 1, room: "despensa" }
     };
 
-    const roomInfo = roomMap[department] || { floor: 1, room: "office1" };
+    const roomInfo = roomMap[department] || { floor: 1, room: "living" };
     const room = floorPlanConfig[roomInfo.floor].rooms.find(r => r.id === roomInfo.room);
     
     if (room) {
@@ -112,7 +134,7 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
       };
     }
 
-    return { x: 200, y: 200, floor: 1, roomId: "office1" };
+    return { x: 200, y: 200, floor: 1, roomId: "living" };
   };
 
   // Función para simular alarma
@@ -148,33 +170,56 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
     currentFloor.rooms.forEach(room => {
       // Color según tipo de habitación
       const colors = {
-        office: '#e0f2fe',
-        meeting: '#f3e8ff',
-        reception: '#fef3c7',
-        elevator: '#fecaca',
-        parking: '#dcfce7',
-        warehouse: '#fef7cd',
-        executive: '#e0e7ff',
-        conference: '#ecfdf5',
-        cafe: '#fef2f2',
-        gate: '#f0f9ff',
-        security: '#fef2f2'
+        living: '#e0f2fe',      // Azul claro para living
+        bedroom: '#f3e8ff',     // Morado claro para piezas
+        kitchen: '#fef3c7',     // Amarillo claro para cocina
+        bathroom: '#ecfdf5',    // Verde claro para baños
+        pantry: '#fef7cd',      // Amarillo más claro para despensa
+        office: '#e0e7ff',      // Azul-morado para oficinas
+        meeting: '#f0f9ff',     // Azul muy claro para reuniones
+        reception: '#fef2f2'    // Rosa claro para recepción
       };
 
       ctx.fillStyle = colors[room.type] || '#f1f5f9';
       ctx.fillRect(room.x, room.y, room.width, room.height);
       
-      // Borde
-      ctx.strokeStyle = '#64748b';
+      // Borde de la habitación
+      ctx.strokeStyle = '#334155';
       ctx.lineWidth = 2;
       ctx.strokeRect(room.x, room.y, room.width, room.height);
 
       // Nombre de la habitación
-      ctx.fillStyle = '#334155';
-      ctx.font = '12px Arial';
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(room.name, room.x + room.width / 2, room.y + room.height / 2 + 4);
+      ctx.fillText(room.name, room.x + room.width / 2, room.y + room.height / 2 + 5);
     });
+
+    // Dibujar puertas
+    if (currentFloor.doors) {
+      currentFloor.doors.forEach(door => {
+        ctx.fillStyle = '#8b5cf6'; // Color morado para puertas
+        ctx.fillRect(door.x, door.y, door.width, door.height);
+        
+        // Borde de la puerta
+        ctx.strokeStyle = '#6d28d9';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(door.x, door.y, door.width, door.height);
+      });
+    }
+
+    // Dibujar ventanas
+    if (currentFloor.windows) {
+      currentFloor.windows.forEach(window => {
+        ctx.fillStyle = '#06b6d4'; // Color cyan para ventanas
+        ctx.fillRect(window.x, window.y, window.width, window.height);
+        
+        // Borde de la ventana
+        ctx.strokeStyle = '#0891b2';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(window.x, window.y, window.width, window.height);
+      });
+    }
 
     // Dibujar personas
     people.filter(p => p.indoorPosition?.floor === selectedFloor).forEach(person => {
@@ -214,7 +259,7 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
     });
 
     // Dibujar leyenda
-    drawLegend(ctx);
+    //drawLegend(ctx);
   };
 
   // Dibujar leyenda
@@ -222,44 +267,98 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
     const legendX = 680;
     const legendY = 20;
     
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(legendX, legendY, 200, 120);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(legendX, legendY, 200, 180);
     
     ctx.strokeStyle = '#64748b';
     ctx.lineWidth = 1;
-    ctx.strokeRect(legendX, legendY, 200, 120);
+    ctx.strokeRect(legendX, legendY, 200, 180);
 
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#1e293b';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('Leyenda:', legendX + 10, legendY + 20);
 
+    let yOffset = 40;
+
     // Persona activa
     ctx.fillStyle = '#22c55e';
     ctx.beginPath();
-    ctx.arc(legendX + 20, legendY + 40, 8, 0, 2 * Math.PI);
+    ctx.arc(legendX + 20, legendY + yOffset, 8, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.fillStyle = '#334155';
-    ctx.font = '12px Arial';
-    ctx.fillText('Persona Activa', legendX + 35, legendY + 45);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Persona Activa', legendX + 35, legendY + yOffset + 4);
+    yOffset += 20;
 
     // Persona en alarma
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.arc(legendX + 20, legendY + 60, 8, 0, 2 * Math.PI);
+    ctx.arc(legendX + 20, legendY + yOffset, 8, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.fillStyle = '#334155';
-    ctx.font = '12px Arial';
-    ctx.fillText('Persona en Alarma', legendX + 35, legendY + 65);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Persona en Alarma', legendX + 35, legendY + yOffset + 4);
+    yOffset += 20;
 
-    // Habitación
+    // Living
     ctx.fillStyle = '#e0f2fe';
-    ctx.fillRect(legendX + 15, legendY + 75, 16, 16);
-    ctx.strokeStyle = '#64748b';
-    ctx.strokeRect(legendX + 15, legendY + 75, 16, 16);
-    ctx.fillStyle = '#334155';
-    ctx.font = '12px Arial';
-    ctx.fillText('Habitación', legendX + 35, legendY + 87);
+    ctx.fillRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.strokeStyle = '#334155';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Living', legendX + 35, legendY + yOffset);
+    yOffset += 18;
+
+    // Pieza
+    ctx.fillStyle = '#f3e8ff';
+    ctx.fillRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.strokeStyle = '#334155';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Pieza', legendX + 35, legendY + yOffset);
+    yOffset += 18;
+
+    // Cocina
+    ctx.fillStyle = '#fef3c7';
+    ctx.fillRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.strokeStyle = '#334155';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Cocina', legendX + 35, legendY + yOffset);
+    yOffset += 18;
+
+    // Baño
+    ctx.fillStyle = '#ecfdf5';
+    ctx.fillRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.strokeStyle = '#334155';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 8, 16, 12);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Baño', legendX + 35, legendY + yOffset);
+    yOffset += 18;
+
+    // Puerta
+    ctx.fillStyle = '#8b5cf6';
+    ctx.fillRect(legendX + 15, legendY + yOffset - 6, 16, 8);
+    ctx.strokeStyle = '#6d28d9';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 6, 16, 8);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Puerta', legendX + 35, legendY + yOffset);
+    yOffset += 18;
+
+    // Ventana
+    ctx.fillStyle = '#06b6d4';
+    ctx.fillRect(legendX + 15, legendY + yOffset - 6, 16, 8);
+    ctx.strokeStyle = '#0891b2';
+    ctx.strokeRect(legendX + 15, legendY + yOffset - 6, 16, 8);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '11px Arial';
+    ctx.fillText('Ventana', legendX + 35, legendY + yOffset);
   };
 
   // Animar el movimiento de las personas
@@ -348,7 +447,7 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
 
   return (
     <div className="w-full h-full">
-      <div className="bg-white p-4 border-b shadow-sm">
+      <div className="p-4 border-b shadow-sm bg-white">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
@@ -363,47 +462,16 @@ export default function IndoorFloorPlan({ onPeopleUpdate, onPersonSelect, select
                 Error: {error}
               </div>
             )}
-            
-            {/* Selector de piso */}
-            {/* <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Piso:</label>
-              <select
-                value={selectedFloor}
-                onChange={(e) => handleFloorChange(Number(e.target.value))}
-                className="px-3 py-1 border border-gray-300 rounded-md text-sm"
-              >
-                {Object.keys(floorPlanConfig).map(floor => (
-                  <option key={floor} value={floor}>
-                    Piso {floor} - {floorPlanConfig[floor].name}
-                  </option>
-                ))}
-              </select>
-            </div> */}
-
-            {/* <button
-              onClick={fetchPersonData}
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isLoading ? "Actualizando..." : "Actualizar Datos"}
-            </button>
-            
-            <button
-              onClick={handleSimulateAlarm}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Simular Alarma
-            </button> */}
           </div>
         </div>
       </div>
       
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 bg-white">
         <canvas
           ref={canvasRef}
           width={900}
-          height={600}
-          className="border border-gray-300 rounded-lg shadow-lg bg-white cursor-pointer w-full h-full"
+          height={800}
+          className="border border-gray-300 rounded-lg shadow-lg cursor-pointer w-full h-full"
           onClick={handleCanvasClick}
           style={{ cursor: 'pointer' }}
         />

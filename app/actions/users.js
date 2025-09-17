@@ -47,8 +47,7 @@ export const createUser = async user => {
 
   const { error: error2 } = await supabase.from("users_roles").insert({
     user_id: data.id,
-    role_id: user.role_id,
-    client_id: user.client_id
+    role_id: user.role_id
   });
 
   if (error2) {
@@ -84,7 +83,7 @@ export const createUserAndSelect = async user => {
 export const getUsers = async () => {
   const query = supabase
     .from("users")
-    .select("*")
+    .select("*, users_roles(*, role_id(*))")
     .order("created_at", { ascending: true });
 
   const { data, error } = await query;
@@ -100,7 +99,7 @@ export const getUsers = async () => {
 export const getUserData = async userId => {
   const { data, error } = await supabase
     .from("users")
-    .select("*, users_roles(role_id(*), client_id(*))")
+    .select("*, users_roles(*, role_id(*))")
     .eq("id", userId)
     .single();
 
