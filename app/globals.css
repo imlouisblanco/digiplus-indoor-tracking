@@ -267,3 +267,263 @@
 .tooltip.show {
   @apply opacity-100;
 }
+
+/* Animaciones personalizadas para la página de login */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
+      0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.8s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.8s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Estilos para el formulario de login */
+.login-form {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.login-input:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.login-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.login-button:hover::before {
+  left: 100%;
+}
+
+/* Estilos para el panel derecho */
+.hero-panel {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+.hero-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/wallpaper-login.png') center/cover no-repeat;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+}
+
+/* Efectos de hover mejorados */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradientes personalizados */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2px;
+  border-radius: 12px;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: white;
+  border-radius: 10px;
+  z-index: -1;
+}
+
+/* Estilos específicos para móvil */
+@media (max-width: 640px) {
+  /* Mejoras de touch para móvil */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Inputs más grandes para móvil */
+  .mobile-input {
+    min-height: 48px;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  /* Botones más grandes para móvil */
+  .mobile-button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  /* Espaciado optimizado para móvil */
+  .mobile-spacing {
+    padding: 1rem;
+  }
+
+  /* Texto optimizado para móvil */
+  .mobile-text {
+    line-height: 1.5;
+    letter-spacing: 0.025em;
+  }
+
+  /* Animaciones más suaves en móvil */
+  .mobile-smooth {
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Efectos de hover deshabilitados en móvil */
+  @media (hover: none) {
+    .hover-lift:hover {
+      transform: none;
+      box-shadow: inherit;
+    }
+  }
+}
+
+/* Estilos para pantallas muy pequeñas */
+@media (max-width: 375px) {
+  .xs-text {
+    font-size: 0.875rem;
+  }
+
+  .xs-spacing {
+    padding: 0.75rem;
+  }
+
+  .xs-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Mejoras de accesibilidad para móvil */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-slideInLeft,
+  .animate-slideInRight,
+  .animate-float,
+  .animate-pulse-glow {
+    animation: none;
+  }
+}
+
+/* Optimizaciones para orientación landscape en móvil */
+@media (max-width: 896px) and (orientation: landscape) {
+  .landscape-mobile {
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .landscape-mobile .hero-panel {
+    height: 40vh;
+    min-height: 200px;
+  }
+
+  .landscape-mobile .login-form-container {
+    height: 60vh;
+    min-height: 300px;
+  }
+}
