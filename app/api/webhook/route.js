@@ -19,7 +19,7 @@ export async function POST(req) {
 
   try {
     console.log(`Procesando mensaje del dispositivo de producción: ${deviceId}`);
-    await insertData(ttnData);
+    await insertData(deviceId, ttnData);
     return NextResponse.json({ message: "Webhook processed for production device" }, { status: 200 });
   } catch (error) {
     console.error(`Error al insertar datos para el dispositivo ${deviceId}:`, error.message);
