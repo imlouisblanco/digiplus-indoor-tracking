@@ -10,9 +10,9 @@ export async function POST(req) {
     return NextResponse.json({ message: "OK: No device ID found" }, { status: 200 });
   }
   
-  const ignoredDeviceIds = ['mcldev001', 'mklw006','mklw001','mklw002','mklw003','mklw004']; 
+  const allowedDeviceIds = ['mklw004', 'mklw001', 'mklw003', 'mklw002', 'mklw006']; 
 
-  if (ignoredDeviceIds.includes(deviceId)) {
+  if (!allowedDeviceIds.includes(deviceId)) {
     console.log(`Webhook ignorado para el dispositivo de prueba: ${deviceId}`);
     return NextResponse.json({ message: `OK: Test device ${deviceId} ignored` }, { status: 200 });
   }
