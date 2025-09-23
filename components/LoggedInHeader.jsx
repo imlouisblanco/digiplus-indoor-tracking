@@ -5,8 +5,6 @@ import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 
-const BHP_COMPANY_ID = '5c4ce3c5-63d4-420e-9524-bc1c3fe741b3';
-
 export const LoggedInHeader = ({ session }) => {
 
     const [userMenu, setUserMenu] = useState(false);
@@ -114,17 +112,14 @@ export const LoggedInHeader = ({ session }) => {
     }
 
     return (
-        <header className="flex flex-col bg-transparent w-full fixed z-[1010]">
+        <header className="flex flex-col w-full fixed z-[1010]">
             <nav className="w-full z-[1010]">
-                <div className="md:w-9/10 bg-[#F8FAFC] border-b border-gray-200 flex flex-wrap items-center justify-between mx-0 md:mx-auto px-4 py-2">
+                <div className="md:w-9/10 bg-[#F8FAFC] flex flex-wrap items-center justify-between mx-0 md:mx-auto px-4 py-2">
                     <div className="flex flex-row items-center">
                         <Image title="Digi Plus" src={'/Logo DIGI Plus Icono.png'} width={120} height={80} className="px-4 object-cover w-auto max-w-[100px] md:max-w-[110px]" alt="Digi Plus" />
-                        <Image title="DBP Mining" src={'/logo_dbp_azul.png'} width={100} height={30} className="px-4 object-contain w-auto max-w-[60px] md:max-w-[70px] md:py-2" alt="DBP Mining" />
                     </div>
                     <div className="flex flex-row items-center justify-between w-fit">
                         <div className="flex flex-row items-center justify-center">
-                            {session.clientId === BHP_COMPANY_ID && <Image title="BHP" src={'/BHP-Logo.png'} width={120} height={50} className="px-4 object-contain max-w-[80px] md:max-w-[200px] md:py-2" alt="BHP" />}
-
                             <span onClick={() => setUserMenu(!userMenu)} className="text-white aspect-square w-10 h-10 text-center shadow-sm rounded-full bg-black uppercase text-md px-2 py-2 font-normal">{getFirstLetter(session.name)}</span>
                         </div>
                         <div className="flex md:hidden flex-row gap-2 ml-2">
