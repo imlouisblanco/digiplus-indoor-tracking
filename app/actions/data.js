@@ -5,6 +5,22 @@ const convertBatteryLevel = (battery) => {
   return battery.split("%")[0];
 }
 
+const getClosestBeacon = (posData) => {
+  let closestBeacon = null;
+  let closestDistance = -10000; // -10000 is a very large distance
+
+  posData.forEach(item => {
+    let distance = parseInt(item.rssi.split("d")[0]);
+    if (distance > closestDistance) {
+      closestBeacon = item;
+      closestDistance = distance;
+    }
+  });
+
+  return closestBeacon;
+}
+
+
 export const insertData = async (deviceId, data) => {
   console.log("Inserting data");
   const deviceEuid = data?.end_device_ids?.dev_eui;
@@ -16,7 +32,7 @@ export const insertData = async (deviceId, data) => {
     device_id: deviceId,
     device_euid: deviceEuid,
     battery: parseInt(convertBatteryLevel(battery)),
-    pos_data: posData
+    pos_data: getClosestBeacon(posData)
   });
 
   if (error) {
