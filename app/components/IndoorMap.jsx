@@ -51,7 +51,7 @@ const devices = [
     }
 ]
 
-const IndoorMap = () => {
+const IndoorMap = ({ latestData }) => {
     return (
         <div className="h-full w-full">
             <MapContainer center={[-33.49541062600386, -70.59621166108582]} zoom={22} scrollWheelZoom={false}
@@ -69,18 +69,25 @@ const IndoorMap = () => {
                     alt="Map"
                     opacity={0.75}
                     bounds={[
-                        [-33.495575, -70.596400],
-                        [-33.495575, -70.596220],
+                        [-33.495555, -70.596400],
+                        [-33.495555, -70.596220],
                         [-33.495440, -70.596220],
-                        [-33.495440, -70.596200]
+                        [-33.495430, -70.596200]
                     ]}
                     className="-rotate-25"
                     style={{ transform: 'rotate(-25deg)' }}
                 />
-                {devices.map(device => (
+                {latestData.map(device => (
                     <Circle className='animate-pulse' key={device.id} color={device.color} fillOpacity={1} center={device.position} radius={0.5}>
                         <Popup>
-                            <div>{device.name}</div>
+                            <div className='flex flex-col'>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Device ID:</p><p>{device.device_id}</p></div>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Closest Beacon:</p><p>{device.closest_beacon}</p></div>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Closest Beacon RSSI:</p><p>{device.pos_data.rssi}</p></div>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Battery:</p><p>{device.battery} %</p></div>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Device EUID:</p><p>{device.device_euid}</p></div>
+                                <div className='flex flex-row items-center gap-2'><p className='font-bold'>Updated at:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
+                            </div>
                         </Popup>
                     </Circle>
                 ))}
