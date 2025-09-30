@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, ImageOverlay, Circle } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
-const IndoorMap = ({ latestData }) => {
+const IndoorMap = ({ latestData, lastUpdate }) => {
     return (
         <div className="h-full w-full xl:col-span-9">
             <MapContainer center={[-33.49541062600386, -70.59621166108582]} zoom={22} scrollWheelZoom={false}
@@ -45,6 +45,10 @@ const IndoorMap = ({ latestData }) => {
                         </Popup>
                     </Circle>
                 ))}
+
+                <div className='absolute right-1 top-1 z-[999] bg-white p-2 rounded-lg'>
+                    <p className='text-xs text-gray-500'>Última actualización: {lastUpdate.toLocaleString('es-CL')}</p>
+                </div>
             </MapContainer>
         </div>
     )

@@ -1,10 +1,14 @@
 'use client'
 import dynamic from "next/dynamic";
 import { beacons } from "@/lib/beacons";
+import { useState, useEffect } from "react";
+import { getDevicesLatestData } from "@/app/actions/data";
 
 const IndoorMap = dynamic(() => import("@/app/components/IndoorMap"), {
     ssr: false
 });
+
+const updateInterval = 60000;
 
 const BeaconCard = ({ beacon, devices }) => {
     return (
@@ -29,6 +33,23 @@ const BeaconCard = ({ beacon, devices }) => {
 };
 
 export default function Dashboard({ latestData }) {
+    const [currentData, setCurrentData] = useState(latestData);
+    const [lastUpdate, setLastUpdate] = useState(new Date());
+
+    const updateData = async () => {
+        const newData = await getDevicesLatestData();
+        setCurrentData(newData);
+        setLastUpdate(new Date());
+    }
+
+    useEffect(() => {
+        setInterval(async () => {
+            updateData();
+        }, updateInterval);
+    }, []);
+
+
+
     return (
         <div className="min-h-screen w-full">
             <main className="mx-auto px-4 py-6 w-full bg-white rounded-lg shadow-md">
@@ -44,7 +65,7 @@ export default function Dashboard({ latestData }) {
                                 ))}
                             </div>
                         </div>
-                        <IndoorMap latestData={latestData} />
+                        <IndoorMap latestData={currentData} lastUpdate={lastUpdate} />
                     </div>
                 </div>
             </main>
