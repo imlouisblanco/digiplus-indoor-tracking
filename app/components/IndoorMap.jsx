@@ -13,7 +13,7 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                 className="z-0"
             >
                 <TileLayer
-                    maxZoom={22}
+                    maxZoom={21}
                     minZoom={18}
                     noWrap={true}
                     detectRetina={true}
