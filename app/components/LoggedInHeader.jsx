@@ -82,9 +82,9 @@ export const LoggedInHeader = ({ session }) => {
     }
 
     return (
-        <header className="flex flex-col bg-white w-full fixed z-[1010]">
+        <header className="flex flex-col bg-white border-b border-gray-200 w-full fixed z-[1010]">
             <nav className="w-full z-[1010]">
-                <div className="md:w-9/10 border-b border-gray-200 flex flex-wrap items-center justify-between mx-0 md:mx-auto px-4 py-2">
+                <div className="md:w-9/10  flex flex-wrap items-center justify-between mx-0 md:mx-auto px-4 py-2">
                     <div className="flex flex-row items-center">
                         <Image title="Digi Plus" src={'/Logo DIGI Plus Icono.png'} width={120} height={80} className="px-4 object-cover w-auto max-w-[100px] md:max-w-[110px]" alt="Digi Plus" />
                     </div>
@@ -121,7 +121,7 @@ export const LoggedInHeader = ({ session }) => {
             {showMobileMenu && <div className="relative left-0 p-4 w-full h-full bg-white z-[50] border-[1px] border-b-gray-300 shadow-xl">
                 <div className="flex flex-col gap-4">
                     {sidebarElements.map((element, index) => (
-                        <Link href={`/private/${element.href}`} key={`sidebar-element-${index}`} className="flex items-center justify-start flex-row gap-2 py-2 px-4 w-full rounded-lg text-[#1C4167] hover:bg-white/10 hover:text-primaryColor group">
+                        <Link href={`/private/${element.href}`} key={`sidebar-element-${index}`} className="flex items-center justify-start flex-row gap-2 py-2 px-4 w-full rounded-lg text-[#1C4167] group">
                             {element.icon}
                             <p>{element.text}</p>
                         </Link>
