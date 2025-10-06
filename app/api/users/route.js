@@ -18,14 +18,12 @@ export async function POST(req) {
     .eq("email", user)
     .single();
 
-  console.log(data);
-
   if (!data) {
     return NextResponse.json({ user: null, status: false });
   }
 
   const isValidPassword = await bcrypt.compare(password, data.password);
-  console.log(isValidPassword);
+
   return isValidPassword
     ? NextResponse.json({
         user: { name: data.name, email: data.email },
