@@ -61,7 +61,7 @@ export default function Dashboard({ latestData }) {
                             <p className="text-sm text-gray-500">Monitoreo en tiempo real de personas</p>
                             <div className="flex flex-col gap-2 mt-4">
                                 {beacons.map((beacon) => (
-                                    <BeaconCard key={beacon.mac} beacon={beacon} devices={latestData.filter(device => device.closest_beacon === beacon.mac)} />
+                                    <BeaconCard key={beacon.mac} beacon={beacon} devices={currentData?.filter(device => device.closest_beacon === beacon.mac)} />
                                 ))}
                             </div>
                         </div>
