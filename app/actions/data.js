@@ -68,3 +68,17 @@ export const getDevicesLatestData = async () => {
 
   return data;
 }
+
+export const getDeviceData = async ({
+  deviceId = null,
+  limit = 100,
+}) => {
+  const { data, error } = await supabase
+    .from("data")
+    .select("*")
+    .eq("device_id", deviceId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return data;
+}

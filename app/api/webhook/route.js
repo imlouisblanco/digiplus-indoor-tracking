@@ -1,6 +1,7 @@
 // Archivo: app/api/webhook-data/route.js
 import { NextResponse } from "next/server";
 import { insertData } from "@/app/actions/data";
+import { ALLOWED_DEVICES } from "@/utils/CONFIG";
 
 export async function POST(req) {
   const ttnData = await req.json();
@@ -10,7 +11,7 @@ export async function POST(req) {
     return NextResponse.json({ message: "OK: No device ID found" }, { status: 200 });
   }
   
-  const allowedDeviceIds = ['mklw004', 'mklw001', 'mklw003', 'mklw002', 'mklw006']; 
+  const allowedDeviceIds = ALLOWED_DEVICES;
 
   if (!allowedDeviceIds.includes(deviceId)) {
     console.log(`Webhook ignorado para el dispositivo de prueba: ${deviceId}`);
