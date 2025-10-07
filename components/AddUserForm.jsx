@@ -2,7 +2,18 @@
 import { useState, useEffect, useCallback } from "react"
 import { createUser, checkEmailExists } from "@/app/actions/users"
 import { useRouter } from "next/navigation"
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { Button } from "@/components/ui/button"
+import {
+    EyeIcon,
+    EyeSlashIcon,
+    UserCircleIcon,
+    EnvelopeIcon,
+    KeyIcon,
+    ShieldCheckIcon,
+    CheckCircleIcon,
+    XMarkIcon,
+    ExclamationTriangleIcon
+} from '@heroicons/react/24/outline'
 import { debounce } from 'lodash'
 
 // Expresiones regulares para validaciones
@@ -69,7 +80,7 @@ export const AddUserForm = ({ session }) => {
             form.email && EMAIL_REGEX.test(form.email) && !emailExists &&
             form.password && Object.values(passwordValidations).every(Boolean) &&
             form.password === form.confirmPassword &&
-            (form.role_id === 1)
+            form.role_id
         )
     }
 
@@ -93,132 +104,252 @@ export const AddUserForm = ({ session }) => {
         }
     }
 
+    const passwordsMatch = form.password && form.confirmPassword && form.password === form.confirmPassword
+
     return (
-        <div>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                {/* Nombre */}
-                <input
-                    type="text"
-                    placeholder="Nombre"
-                    className="px-4 py-2 bg-gray-100"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    required
-                />
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-600 via-[#29f57e] to-teal-500 p-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <UserCircleIcon className="w-5 h-5" />
+                    Información del Usuario
+                </h3>
+            </div>
 
-                {/* Email */}
-                <input
-                    type="email"
-                    placeholder="Email"
-                    className="px-4 py-2 bg-gray-100"
-                    value={form.email}
-                    onChange={(e) => {
-                        const email = e.target.value
-                        setForm({ ...form, email })
-                        setErrors({
-                            ...errors,
-                            email: email && !EMAIL_REGEX.test(email)
-                                ? 'Por favor ingrese un email válido'
-                                : ''
-                        })
-                    }}
-                    required
-                />
-                {errors.email && <p className="text-gray-700 text-sm mt-1">{errors.email}</p>}
-                {errors.duplicateEmail && <p className="text-red-500 text-sm mt-1">{errors.duplicateEmail}</p>}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {/* Información básica */}
+                <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Datos Personales</h4>
 
-                {/* Contraseña */}
-                <div className="relative">
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        className="px-4 py-2 bg-gray-100 w-full"
-                        value={form.password}
-                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        required
-                    />
-                    <div
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                        onClick={() => setShowPassword(!showPassword)}
-                    >
-                        {showPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-500" /> : <EyeIcon className="h-5 w-5 text-gray-500" />}
+                    {/* Nombre */}
+                    <div className="space-y-2">
+                        <label htmlFor="name" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <UserCircleIcon className="w-4 h-4 text-emerald-600" />
+                            Nombre Completo
+                        </label>
+                        <input
+                            id="name"
+                            type="text"
+                            placeholder="Ingrese el nombre completo"
+                            className="w-full border-2 border-gray-200 focus:border-emerald-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <EnvelopeIcon className="w-4 h-4 text-emerald-600" />
+                            Correo Electrónico
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="ejemplo@correo.com"
+                            className={`w-full border-2 rounded-lg p-3 focus:outline-none focus:ring-2 transition-all ${errors.email || errors.duplicateEmail
+                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+                                    : 'border-gray-200 focus:border-emerald-400 focus:ring-emerald-200'
+                                }`}
+                            value={form.email}
+                            onChange={(e) => {
+                                const email = e.target.value
+                                setForm({ ...form, email })
+                                setErrors({
+                                    ...errors,
+                                    email: email && !EMAIL_REGEX.test(email)
+                                        ? 'Por favor ingrese un email válido'
+                                        : ''
+                                })
+                            }}
+                            required
+                        />
+                        {errors.email && (
+                            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+                                <XMarkIcon className="w-4 h-4" />
+                                {errors.email}
+                            </p>
+                        )}
+                        {errors.duplicateEmail && (
+                            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+                                <ExclamationTriangleIcon className="w-4 h-4" />
+                                {errors.duplicateEmail}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Rol */}
+                    <div className="space-y-2">
+                        <label htmlFor="role" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <ShieldCheckIcon className="w-4 h-4 text-emerald-600" />
+                            Rol del Usuario
+                        </label>
+                        <select
+                            id="role"
+                            className="w-full border-2 border-gray-200 focus:border-emerald-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
+                            value={form.role_id}
+                            onChange={(e) => setForm({ ...form, role_id: parseInt(e.target.value) })}
+                        >
+                            {session.roleId === 1 && <option value={1}>SuperAdministrador</option>}
+                            <option value={2}>Operador</option>
+                            <option value={4}>Administrador</option>
+                        </select>
                     </div>
                 </div>
 
-                {/* Confirmar Contraseña */}
-                <input
-                    type="password"
-                    placeholder="Confirmar Password"
-                    className="px-4 py-2 bg-gray-100"
-                    value={form.confirmPassword}
-                    onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                    required
-                />
+                {/* Sección de seguridad */}
+                <div className="pt-6 border-t border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Seguridad</h4>
 
-                {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1">Las contraseñas no coinciden</p>
-                )}
+                    {/* Contraseña */}
+                    <div className="space-y-2">
+                        <label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <KeyIcon className="w-4 h-4 text-emerald-600" />
+                            Contraseña
+                        </label>
+                        <div className="relative">
+                            <input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Ingrese la contraseña"
+                                className="w-full border-2 border-gray-200 focus:border-emerald-400 rounded-lg p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
+                                value={form.password}
+                                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
+                            >
+                                {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                            </button>
+                        </div>
+                    </div>
 
-                {/* Requisitos de contraseña */}
-                <div className="text-sm mt-1">
-                    <p className={form.password ? (passwordValidations.length ? 'text-gray-600' : 'text-red-500') : 'text-gray-600'}>
-                        {form.password ? (passwordValidations.length ? '✅ ' : '❌ ') : '• '}
-                        Mínimo 8 caracteres.
-                    </p>
-                    <p className={form.password ? (passwordValidations.uppercase ? 'text-gray-600' : 'text-red-500') : 'text-gray-600'}>
-                        {form.password ? (passwordValidations.uppercase ? '✅ ' : '❌ ') : '• '}
-                        Al menos 1 mayúscula.
-                    </p>
-                    <p className={form.password ? (passwordValidations.lowercase ? 'text-gray-600' : 'text-red-500') : 'text-gray-600'}>
-                        {form.password ? (passwordValidations.lowercase ? '✅ ' : '❌ ') : '• '}
-                        Al menos 1 minúscula.
-                    </p>
-                    <p className={form.password ? (passwordValidations.number ? 'text-gray-600' : 'text-red-500') : 'text-gray-600'}>
-                        {form.password ? (passwordValidations.number ? '✅ ' : '❌ ') : '• '}
-                        Al menos 1 número.
-                    </p>
-                    <p className={form.password ? (passwordValidations.symbol ? 'text-gray-600' : 'text-red-500') : 'text-gray-600'}>
-                        {form.password ? (passwordValidations.symbol ? '✅ ' : '❌ ') : '• '}
-                        Al menos 1 símbolo.
-                    </p>
+                    {/* Confirmar Contraseña */}
+                    <div className="space-y-2 mt-4">
+                        <label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
+                            Confirmar Contraseña
+                        </label>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            placeholder="Confirme la contraseña"
+                            className={`w-full border-2 rounded-lg p-3 focus:outline-none focus:ring-2 transition-all ${form.confirmPassword && !passwordsMatch
+                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+                                    : 'border-gray-200 focus:border-emerald-400 focus:ring-emerald-200'
+                                }`}
+                            value={form.confirmPassword}
+                            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                            required
+                        />
+                        {form.confirmPassword && !passwordsMatch && (
+                            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+                                <XMarkIcon className="w-4 h-4" />
+                                Las contraseñas no coinciden
+                            </p>
+                        )}
+                        {passwordsMatch && (
+                            <p className="text-sm text-emerald-600 flex items-center gap-1 mt-1">
+                                <CheckCircleIcon className="w-4 h-4" />
+                                Las contraseñas coinciden
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Requisitos de contraseña */}
+                    <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
+                        <p className="text-sm font-semibold text-blue-800 mb-2">Requisitos de la contraseña:</p>
+                        <div className="space-y-1 text-sm">
+                            <p className={`flex items-center gap-2 ${form.password
+                                    ? (passwordValidations.length ? 'text-emerald-600' : 'text-red-500')
+                                    : 'text-gray-600'
+                                }`}>
+                                {form.password
+                                    ? (passwordValidations.length ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />)
+                                    : <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                }
+                                Mínimo 8 caracteres
+                            </p>
+                            <p className={`flex items-center gap-2 ${form.password
+                                    ? (passwordValidations.uppercase ? 'text-emerald-600' : 'text-red-500')
+                                    : 'text-gray-600'
+                                }`}>
+                                {form.password
+                                    ? (passwordValidations.uppercase ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />)
+                                    : <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                }
+                                Al menos 1 letra mayúscula
+                            </p>
+                            <p className={`flex items-center gap-2 ${form.password
+                                    ? (passwordValidations.lowercase ? 'text-emerald-600' : 'text-red-500')
+                                    : 'text-gray-600'
+                                }`}>
+                                {form.password
+                                    ? (passwordValidations.lowercase ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />)
+                                    : <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                }
+                                Al menos 1 letra minúscula
+                            </p>
+                            <p className={`flex items-center gap-2 ${form.password
+                                    ? (passwordValidations.number ? 'text-emerald-600' : 'text-red-500')
+                                    : 'text-gray-600'
+                                }`}>
+                                {form.password
+                                    ? (passwordValidations.number ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />)
+                                    : <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                }
+                                Al menos 1 número
+                            </p>
+                            <p className={`flex items-center gap-2 ${form.password
+                                    ? (passwordValidations.symbol ? 'text-emerald-600' : 'text-red-500')
+                                    : 'text-gray-600'
+                                }`}>
+                                {form.password
+                                    ? (passwordValidations.symbol ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />)
+                                    : <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                }
+                                Al menos 1 símbolo especial
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Rol */}
-                <select
-                    className="px-4 py-2 bg-gray-100"
-                    value={form.role_id}
-                    onChange={(e) => setForm({ ...form, role_id: parseInt(e.target.value) })}
-                >
-                    {session.roleId === 1 && <option value={1}>SuperAdministrador</option>}
-                    <option value={2}>Operador</option>
-                    <option value={4}>Administrador</option>
-                </select>
-
                 {/* Botones */}
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        disabled={!isFormValid() || isSubmitting}
+                <div className="flex gap-3 pt-4">
+                    <Button
                         type="submit"
-                        className="bg-blue-600 hover:bg-blue-800 disabled:bg-gray-500 font-bold px-4 py-2 text-white rounded-md"
+                        disabled={!isFormValid() || isSubmitting}
+                        className="flex-1 bg-gradient-to-r from-[#29f57e] via-emerald-500 to-teal-600 hover:shadow-lg hover:shadow-emerald-200 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 disabled:shadow-none transition-all duration-300"
                     >
-                        {isSubmitting ? 'Creando...' : 'Crear Usuario'}
-                    </button>
-                    <button
+                        <CheckCircleIcon className="w-5 h-5 mr-2" />
+                        {isSubmitting ? 'Creando Usuario...' : 'Crear Usuario'}
+                    </Button>
+                    <Button
                         type="button"
                         onClick={() => router.push('/private/users')}
-                        className="bg-primaryColor hover:bg-primaryColorLight text-white px-4 py-2 rounded-md"
+                        variant="outline"
+                        className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
                     >
+                        <XMarkIcon className="w-5 h-5 mr-2" />
                         Cancelar
-                    </button>
+                    </Button>
                 </div>
             </form>
 
             {/* Modal de éxito */}
             {showSuccessModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm">
-                        <h3 className="text-lg font-bold mb-2">¡Éxito!</h3>
-                        <p>El usuario se ha registrado correctamente</p>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md animate-in zoom-in duration-200">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#29f57e] to-emerald-500 flex items-center justify-center">
+                                <CheckCircleIcon className="w-10 h-10 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900">¡Usuario Creado!</h3>
+                            <p className="text-gray-600 text-center">El usuario se ha registrado correctamente en el sistema</p>
+                        </div>
                     </div>
                 </div>
             )}

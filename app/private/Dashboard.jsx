@@ -3,6 +3,15 @@ import dynamic from "next/dynamic";
 import { beacons } from "@/lib/beacons";
 import { useState, useEffect } from "react";
 import { getDevicesLatestData } from "@/app/actions/data";
+import { Badge } from "@/components/ui/badge";
+import {
+    MapPinIcon,
+    CpuChipIcon,
+    ClockIcon,
+    ArrowPathIcon,
+    ChartBarIcon,
+    UsersIcon
+} from '@heroicons/react/24/outline';
 
 const IndoorMap = dynamic(() => import("@/app/components/IndoorMap"), {
     ssr: false
@@ -12,22 +21,35 @@ const updateInterval = 60000;
 
 const BeaconCard = ({ beacon, devices }) => {
     return (
-        <div key={beacon.mac} className="flex flex-col gap-2 p-4 border border-gray-300 rounded-lg">
-            <div className="flex flex-col gap-2 border-b border-gray-300 pb-2">
-                <div className="flex flex-row gap-2 items-center">
-                    <span className={`w-4 h-4 rounded-full ${beacon.background}`}></span>
-                    <p className="text-sm font-bold">Beacon {beacon.mac} </p>
-                </div>
-                <p className="text-xs text-black">({devices.length} {devices.length > 1 ? "dispositivos" : "dispositivo"})</p>
-
-            </div>
-            <div className="flex flex-col gap-2">
-                {devices.map(device => (
-                    <div key={device.id} className="flex flex-row gap-2">
-                        <p className="text-sm text-gray-500">{device.device_id}</p>
+        <div className="group flex flex-col gap-3 p-4 bg-white border-2 border-gray-100 hover:border-emerald-200 rounded-xl hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg ${beacon.background} flex items-center justify-center shadow-md`}>
+                        <MapPinIcon className="w-5 h-5 text-white" />
                     </div>
-                ))}
+                    <div>
+                        <p className="text-sm font-bold text-gray-900">{beacon.name}</p>
+                        <Badge variant="outline" className="mt-1 text-xs">
+                            {devices.length} {devices.length !== 1 ? "dispositivos" : "dispositivo"}
+                        </Badge>
+                    </div>
+                </div>
             </div>
+
+            {devices.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                    {devices.map(device => (
+                        <div key={device.id} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
+                            <CpuChipIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            <p className="text-sm font-medium text-gray-700">{device.device_id}</p>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="py-3 text-center">
+                    <p className="text-xs text-gray-400">Sin dispositivos</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -35,37 +57,85 @@ const BeaconCard = ({ beacon, devices }) => {
 export default function Dashboard({ latestData }) {
     const [currentData, setCurrentData] = useState(latestData);
     const [lastUpdate, setLastUpdate] = useState(new Date());
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const updateData = async () => {
+        setIsUpdating(true);
         const newData = await getDevicesLatestData();
         setCurrentData(newData);
         setLastUpdate(new Date());
+        setIsUpdating(false);
     }
 
     useEffect(() => {
-        setInterval(async () => {
+        const interval = setInterval(async () => {
             updateData();
         }, updateInterval);
+
+        return () => clearInterval(interval);
     }, []);
 
-
+    const totalDevices = currentData?.length || 0;
+    const beaconsWithDevices = beacons.filter(beacon =>
+        currentData?.some(device => device.closest_beacon === beacon.mac)
+    ).length;
 
     return (
-        <div className="min-h-screen w-full">
-            <main className="mx-auto px-4 py-6 w-full bg-white rounded-lg shadow-md">
+        <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-100">
+            <main className="mx-auto px-6 py-6 w-full">
                 <div className="flex flex-col gap-6">
-                    <h1 className="text-2xl font-bold">Dashboard</h1>
-                    <div className="flex flex-col xl:grid xl:grid-cols-12">
-                        <div className="w-full xl:col-span-3 border border-gray-300 p-4 rounded-tl-lg rounded-bl-lg shadow-md">
-                            <h2 className="text-lg font-bold">Plano Indoor</h2>
-                            <p className="text-sm text-gray-500">Monitoreo en tiempo real de personas</p>
-                            <div className="flex flex-col gap-2 mt-4">
-                                {beacons.map((beacon) => (
-                                    <BeaconCard key={beacon.mac} beacon={beacon} devices={currentData?.filter(device => device.closest_beacon === beacon.mac)} />
-                                ))}
+                    {/* Header moderno */}
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#29f57e] via-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                                <ChartBarIcon className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold bg-gradient-to-r from-[#29f57e] via-emerald-600 to-teal-700 bg-clip-text text-transparent">
+                                    Dashboard
+                                </h1>
+                                <p className="text-sm text-gray-500 mt-1">Monitoreo en tiempo real de dispositivos</p>
                             </div>
                         </div>
-                        <IndoorMap latestData={currentData} lastUpdate={lastUpdate} />
+                    </div>
+
+                    {/* Contenido principal */}
+                    <div className="flex flex-col xl:grid xl:grid-cols-12 gap-6">
+                        {/* Panel lateral de beacons */}
+                        <div className="w-full xl:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                            <div className="bg-gradient-to-r from-[#29f57e] via-emerald-500 to-teal-600 p-4">
+                                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <MapPinIcon className="w-5 h-5" />
+                                    Ubicaciones
+                                </h2>
+                                <p className="text-sm text-white/90 mt-1">Distribución por beacon</p>
+                            </div>
+                            <div className="p-4 max-h-[calc(100vh-20rem)] overflow-y-auto">
+                                <div className="flex flex-col gap-3">
+                                    {beacons.map((beacon) => (
+                                        <BeaconCard
+                                            key={beacon.mac}
+                                            beacon={beacon}
+                                            devices={currentData?.filter(device => device.closest_beacon === beacon.mac) || []}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mapa */}
+                        <div className="xl:col-span-9 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                            <div className="bg-gradient-to-r from-teal-500 via-[#29f57e] to-emerald-500 p-4">
+                                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <ChartBarIcon className="w-5 h-5" />
+                                    Vista del Plano
+                                </h2>
+                                <p className="text-sm text-white/90 mt-1">Visualización en tiempo real</p>
+                            </div>
+                            <div className="h-[calc(100vh-16rem)]">
+                                <IndoorMap latestData={currentData} lastUpdate={lastUpdate} />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>

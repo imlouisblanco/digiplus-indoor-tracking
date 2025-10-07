@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, ImageOverlay, Circle } from 're
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { beacons } from '@/lib/beacons'
 
 const IndoorMap = ({ latestData, lastUpdate }) => {
     // Group devices by exact same position to cluster overlapping points
@@ -19,13 +20,14 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
     const groups = Array.from(groupsMap.values())
     return (
         <div className="h-full w-full xl:col-span-9">
-            <MapContainer center={[-33.49541062600386, -70.59621166108582]} zoom={22} scrollWheelZoom={false}
+            <MapContainer center={[-33.49541062600386, -70.59621166108582]} zoom={22.4} scrollWheelZoom={false}
                 zoomControl={false}
                 style={{ width: "100%", height: "100%", minHeight: "40rem", zIndex: 30 }}
                 className="z-0"
+                doubleClickZoom={false}
             >
                 <TileLayer
-                    maxZoom={21}
+                    maxZoom={23}
                     minZoom={18}
                     noWrap={true}
                     detectRetina={true}
@@ -33,9 +35,9 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                     url="https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}"
                 />
                 <ImageOverlay
-                    url="/plano.png"
+                    url="/gemini_rotated.png"
                     alt="Map"
-                    opacity={0.75}
+                    opacity={1}
                     bounds={[
                         [-33.49539976885145, -70.59633963804193],
                         [-33.49532148169527, -70.59614182512233],
@@ -50,7 +52,7 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                     if (devicesAtPosition.length === 1) {
                         const device = devicesAtPosition[0]
                         return (
-                            <Circle className='animate-pulse' key={key} color={device.color} fillOpacity={1} center={position} radius={0.5}>
+                            <Circle key={key} color={device.color} fillOpacity={1} center={position} radius={0.5}>
                                 <Popup>
                                     <div className='w-[280px] max-w-[80vw]'>
                                         <Tabs defaultValue={`device-${device.id}`}>
@@ -61,12 +63,12 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                                             </TabsList>
                                             <TabsContent value={`device-${device.id}`}>
                                                 <div className='flex flex-col gap-1'>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Device ID:</p><p>{device.device_id}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Closest Beacon:</p><p>{device.closest_beacon}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Closest Beacon RSSI:</p><p>{device.pos_data.rssi}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Battery:</p><p>{device.battery} %</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Device EUID:</p><p>{device.device_euid}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Updated at:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>ID:</p><p>{device.device_id}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano:</p><p>{beacons.find(beacon => beacon.mac.toLowerCase() === device.closest_beacon.toLowerCase())?.name.toUpperCase() || 'N/A'}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano RSSI:</p><p>{device.pos_data.rssi}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Batería:</p><p>{device.battery} %</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>EUID:</p><p>{device.device_euid}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Actualizado el:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
                                                 </div>
                                             </TabsContent>
                                         </Tabs>
@@ -100,12 +102,12 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                                         {devicesAtPosition.map((device) => (
                                             <TabsContent key={device.id} value={`device-${device.id}`}>
                                                 <div className='flex flex-col gap-1'>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Device ID:</p><p>{device.device_id}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Closest Beacon:</p><p>{device.closest_beacon}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Closest Beacon RSSI:</p><p>{device.pos_data.rssi}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Battery:</p><p>{device.battery} %</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Device EUID:</p><p>{device.device_euid}</p></div>
-                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Updated at:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>ID:</p><p>{device.device_id}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano:</p><p>{beacons.find(beacon => beacon.mac.toLowerCase() === device.closest_beacon.toLowerCase())?.name.toUpperCase() || 'N/A'}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano RSSI:</p><p>{device.pos_data.rssi}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Batería:</p><p>{device.battery} %</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>EUID:</p><p>{device.device_euid}</p></div>
+                                                    <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Actualizado el:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
                                                 </div>
                                             </TabsContent>
                                         ))}
