@@ -82,3 +82,22 @@ export const getDeviceData = async ({
 
   return data;
 }
+
+export const getDeviceDataByDate = async ({
+  deviceId = null,
+  startDate = null,
+  endDate = null,
+}) => {
+  const { data, error } = await supabase
+  .rpc('get_data_by_device_and_date', {
+    p_device_id: deviceId,
+    p_start_date: startDate,
+    p_end_date: endDate
+  });
+
+  if (error) {
+    console.log(error.message);
+  }
+
+  return data;
+}
