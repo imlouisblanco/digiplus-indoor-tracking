@@ -102,16 +102,27 @@ export const getDeviceDataByDate = async ({
 
   return data;
 }
+const EARTH_RADIUS = 6371000; // m
 
-// Convert lat/lon to meters relative to a reference point
+const rssiToDistance = (rssi, p0 = -59, n = 3.2) => {
+  return Math.pow(10, (p0 - rssi) / (10 * n));
+};
+
+const adjustDistance = (dist, rssi) => {
+  if (rssi > -60) return dist * 0.5;
+  if (rssi > -65) return dist * 0.8;
+  if (rssi > -70) return dist * 1.0;
+  return dist * 1.4;
+};
+
+const clampDistance = (dist, min = 0.5, max = 6) => Math.min(Math.max(dist, min), max);
+
 const latLonToXY = (lat, lon, refLat, refLon) => {
-  const R = 6371000; // Earth radius in meters
-  const x = (lon - refLon) * Math.cos((lat + refLat) / 2 * Math.PI / 180) * R * Math.PI / 180;
-  const y = (lat - refLat) * R * Math.PI / 180;
+  const x = (lon - refLon) * Math.cos((lat + refLat) / 2 * Math.PI / 180) * EARTH_RADIUS * Math.PI / 180;
+  const y = (lat - refLat) * EARTH_RADIUS * Math.PI / 180;
   return { x, y };
-}
+};
 
-// Trilateration with 3 circles in 2D
 const trilaterate = (p1, r1, p2, r2, p3, r3) => {
   const A = 2 * (p2.x - p1.x);
   const B = 2 * (p2.y - p1.y);
@@ -120,21 +131,13 @@ const trilaterate = (p1, r1, p2, r2, p3, r3) => {
   const E = 2 * (p3.y - p2.y);
   const F = r2 ** 2 - r3 ** 2 - p2.x ** 2 + p3.x ** 2 - p2.y ** 2 + p3.y ** 2;
 
-  const x = (C * E - F * B) / (A * E - B * D);
+  const denominator = A * E - B * D;
+  if (denominator === 0) return null;
+
+  const x = (C * E - F * B) / denominator;
   const y = (C * D - A * F) / (B * D - A * E);
   return { x, y };
-}
-const rssiToDistance = (rssi, p0 = -59, n = 3.2) => {
-  return Math.pow(10, (p0 - rssi) / (10 * n));
 };
-
-const boostProximity = (dist, rssi) => {
-  if (rssi > -60) return dist * 0.7;
-  if (rssi > -65) return dist * 0.85;
-  return dist;
-};
-
-const clampDistance = (dist, min = 0.5, max = 6.0) => Math.min(Math.max(dist, min), max);
 
 const estimatePosition = (beacons, rssiData) => {
   const macs = rssiData.map(r => r.mac.toUpperCase());
@@ -142,26 +145,43 @@ const estimatePosition = (beacons, rssiData) => {
   if (selected.length !== 3) return { lat: null, lon: null };
 
   const ref = selected[0].position;
+  let strongest = null;
 
   const positionsXY = selected.map((b) => {
     const rawRssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
     const rssi = parseInt(rawRssi.replace("dBm", ""), 10);
-    let dist = rssiToDistance(rssi);
-    dist = boostProximity(dist, rssi);
-    dist = clampDistance(dist);
+    const distRaw = rssiToDistance(rssi);
+    const dist = clampDistance(adjustDistance(distRaw, rssi));
+
+    if (!strongest || rssi > strongest.rssi) {
+      strongest = { rssi, beacon: b, dist };
+    }
+
     const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
-    return { x, y, r: dist };
+    return { x, y, r: dist, rssi, mac: b.mac };
   });
 
   const [p1, p2, p3] = positionsXY;
   const resultXY = trilaterate(p1, p1.r, p2, p2.r, p3, p3.r);
-
-  if (!isFinite(resultXY.x) || !isFinite(resultXY.y)) {
+  if (!resultXY || !isFinite(resultXY.x) || !isFinite(resultXY.y)) {
     return { lat: null, lon: null };
   }
 
-  const lat = ref[0] + (resultXY.y / 6371000) * (180 / Math.PI);
-  const lon = ref[1] + (resultXY.x / (6371000 * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
+  // Convert back to lat/lon
+  const trilatLat = ref[0] + (resultXY.y / EARTH_RADIUS) * (180 / Math.PI);
+  const trilatLon = ref[1] + (resultXY.x / (EARTH_RADIUS * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
 
-  return { lat, lon };
+  // Si el beacon más fuerte tiene al menos 10 dBm más potencia que el segundo, "atraemos" la posición hacia él
+  const sortedByRssi = positionsXY.sort((a, b) => b.rssi - a.rssi);
+  const diff = sortedByRssi[0].rssi - sortedByRssi[1].rssi;
+
+  if (diff >= 10) {
+    const [bLat, bLon] = strongest.beacon.position;
+    return {
+      lat: bLat * 0.7 + trilatLat * 0.3,
+      lon: bLon * 0.7 + trilatLon * 0.3
+    };
+  }
+
+  return { lat: trilatLat, lon: trilatLon };
 };
