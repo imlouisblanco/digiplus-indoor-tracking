@@ -103,7 +103,7 @@ export const getDeviceDataByDate = async ({
   return data;
 }
 
-const rssiToDistance = (rssi, p0 = -59, n = 2.5) => {
+const rssiToDistance = (rssi, p0 = -59, n = 3) => {
   return Math.pow(10, (p0 - rssi) / (10 * n));
 }
 
@@ -137,7 +137,8 @@ const estimatePosition = (beacons, rssiData) => {
 
   const positionsXY = selected.map((b, i) => {
     const rssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
-    const dist = rssiToDistance(rssi);
+    const rssiCleaned = parseInt(rssi.replace("dBm", ""), 10)
+    const dist = rssiToDistance(rssiCleaned);
     const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
     return { x, y, r: dist };
   });
