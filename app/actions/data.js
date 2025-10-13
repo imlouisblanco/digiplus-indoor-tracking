@@ -103,10 +103,6 @@ export const getDeviceDataByDate = async ({
   return data;
 }
 
-const rssiToDistance = (rssi, p0 = -59, n = 3) => {
-  return Math.pow(10, (p0 - rssi) / (10 * n));
-}
-
 // Convert lat/lon to meters relative to a reference point
 const latLonToXY = (lat, lon, refLat, refLon) => {
   const R = 6371000; // Earth radius in meters
@@ -128,20 +124,31 @@ const trilaterate = (p1, r1, p2, r2, p3, r3) => {
   const y = (C * D - A * F) / (B * D - A * E);
   return { x, y };
 }
+const rssiToDistance = (rssi, p0 = -59, n = 3.2) => {
+  return Math.pow(10, (p0 - rssi) / (10 * n));
+};
 
-// Main
+const boostProximity = (dist, rssi) => {
+  if (rssi > -60) return dist * 0.7;
+  if (rssi > -65) return dist * 0.85;
+  return dist;
+};
+
+const clampDistance = (dist, min = 0.5, max = 6.0) => Math.min(Math.max(dist, min), max);
+
 const estimatePosition = (beacons, rssiData) => {
   const macs = rssiData.map(r => r.mac.toUpperCase());
   const selected = beacons.filter(b => macs.includes(b.mac));
   if (selected.length !== 3) return { lat: null, lon: null };
 
   const ref = selected[0].position;
-  const MAX_DIST = 6;
 
   const positionsXY = selected.map((b) => {
-    const rssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
-    const rssiCleaned = parseInt(rssi.replace("dBm", ""), 10);
-    const dist = Math.min(rssiToDistance(rssiCleaned), MAX_DIST);
+    const rawRssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
+    const rssi = parseInt(rawRssi.replace("dBm", ""), 10);
+    let dist = rssiToDistance(rssi);
+    dist = boostProximity(dist, rssi);
+    dist = clampDistance(dist);
     const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
     return { x, y, r: dist };
   });
@@ -157,4 +164,4 @@ const estimatePosition = (beacons, rssiData) => {
   const lon = ref[1] + (resultXY.x / (6371000 * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
 
   return { lat, lon };
-}
+};
