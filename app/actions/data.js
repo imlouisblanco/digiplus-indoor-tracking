@@ -133,12 +133,15 @@ const trilaterate = (p1, r1, p2, r2, p3, r3) => {
 const estimatePosition = (beacons, rssiData) => {
   const macs = rssiData.map(r => r.mac.toUpperCase());
   const selected = beacons.filter(b => macs.includes(b.mac));
-  const ref = selected[0].position;
+  if (selected.length !== 3) return { lat: null, lon: null };
 
-  const positionsXY = selected.map((b, i) => {
+  const ref = selected[0].position;
+  const MAX_DIST = 6;
+
+  const positionsXY = selected.map((b) => {
     const rssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
-    const rssiCleaned = parseInt(rssi.replace("dBm", ""), 10)
-    const dist = rssiToDistance(rssiCleaned);
+    const rssiCleaned = parseInt(rssi.replace("dBm", ""), 10);
+    const dist = Math.min(rssiToDistance(rssiCleaned), MAX_DIST);
     const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
     return { x, y, r: dist };
   });
@@ -146,7 +149,10 @@ const estimatePosition = (beacons, rssiData) => {
   const [p1, p2, p3] = positionsXY;
   const resultXY = trilaterate(p1, p1.r, p2, p2.r, p3, p3.r);
 
-  // Convert back to lat/lon
+  if (!isFinite(resultXY.x) || !isFinite(resultXY.y)) {
+    return { lat: null, lon: null };
+  }
+
   const lat = ref[0] + (resultXY.y / 6371000) * (180 / Math.PI);
   const lon = ref[1] + (resultXY.x / (6371000 * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
 

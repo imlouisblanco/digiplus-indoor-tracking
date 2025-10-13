@@ -12,6 +12,8 @@ import {
     ChartBarIcon,
     UsersIcon
 } from '@heroicons/react/24/outline';
+import { Switch } from "@/components/ui/switch";
+
 
 const IndoorMap = dynamic(() => import("@/app/components/IndoorMap"), {
     ssr: false
@@ -58,6 +60,7 @@ export default function Dashboard({ latestData }) {
     const [currentData, setCurrentData] = useState(latestData);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [isUpdating, setIsUpdating] = useState(false);
+    const [experimentalView, setExperimentalView] = useState(false);
 
     const updateData = async () => {
         setIsUpdating(true);
@@ -125,15 +128,21 @@ export default function Dashboard({ latestData }) {
 
                         {/* Mapa */}
                         <div className="xl:col-span-9 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-teal-500 via-[#29f57e] to-emerald-500 p-4">
-                                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                                    <ChartBarIcon className="w-5 h-5" />
-                                    Vista del Plano
-                                </h2>
-                                <p className="text-sm text-white/90 mt-1">Visualización en tiempo real</p>
+                            <div className="bg-gradient-to-r flex flex-row items-center justify-between from-teal-500 via-[#29f57e] to-emerald-500 p-4">
+                                <div className="flex flex-col gap-2">
+                                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                                        <ChartBarIcon className="w-5 h-5" />
+                                        Vista del Plano
+                                    </h2>
+                                    <p className="text-sm text-white/90 mt-1">Visualización en tiempo real</p>
+                                </div>
+                                <div className="flex flex-row gap-2">
+                                    <span className="text-white/90">{experimentalView ? "Vista Experimental" : "Vista Normal"}</span>
+                                    <Switch checked={experimentalView} onCheckedChange={setExperimentalView} />
+                                </div>
                             </div>
                             <div className="h-[calc(100vh-16rem)]">
-                                <IndoorMap latestData={currentData} lastUpdate={lastUpdate} />
+                                <IndoorMap viewMode={experimentalView ? "experimental" : "normal"} latestData={currentData} lastUpdate={lastUpdate} experimentalView={experimentalView} />
                             </div>
                         </div>
                     </div>

@@ -7,7 +7,7 @@ import L from 'leaflet'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { beacons } from '@/lib/beacons'
 
-const IndoorMap = ({ latestData, lastUpdate }) => {
+const IndoorMap = ({ latestData, lastUpdate, viewMode }) => {
     // Group devices by exact same position to cluster overlapping points
     const positionKey = (pos) => JSON.stringify(pos)
     const groupsMap = latestData.reduce((map, device) => {
@@ -45,7 +45,7 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                         [-33.49551272590918, -70.59628934662167]
                     ]}
                 />
-                {groups.map((devicesAtPosition) => {
+                {viewMode === "normal" ? groups.map((devicesAtPosition) => {
                     const position = devicesAtPosition[0].position
                     const key = devicesAtPosition.map(d => d.id).join('-')
 
@@ -116,14 +116,27 @@ const IndoorMap = ({ latestData, lastUpdate }) => {
                             </Popup>
                         </Marker>
                     )
+                }) : latestData.map((device) => {
+                    return (
+                        <Circle key={device.id} center={device.estimated_position} radius={0.5} color={'white'} fillOpacity={1} fillColor='rgba(37, 99, 235, 1)' opacity={1}>
+                            <Popup>
+                                <div className='w-[320px] max-w-[85vw] '>
+                                    <div className='flex flex-col gap-1'>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>ID:</p><p>{device.device_id}</p></div>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano:</p><p>{beacons.find(beacon => beacon.mac.toLowerCase() === device.closest_beacon.toLowerCase())?.name.toUpperCase() || 'N/A'}</p></div>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Beacon más cercano RSSI:</p><p>{device.pos_data.rssi}</p></div>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Batería:</p><p>{device.battery} %</p></div>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>EUID:</p><p>{device.device_euid}</p></div>
+                                        <div className='flex flex-row items-center gap-2 max-h-6'><p className='font-bold'>Actualizado el:</p><p>{new Date(device.created_at).toLocaleString('es-CL')}</p></div>
+                                    </div>
+                                </div>
+                            </Popup>
+                        </Circle>
+                    )
                 })}
-
-                <div className='absolute right-1 top-1 z-[999] bg-white p-2 rounded-lg'>
-                    <p className='text-xs text-gray-500'>Última actualización: {lastUpdate.toLocaleString('es-CL')}</p>
-                </div>
             </MapContainer>
         </div>
-    )
+    );
 }
 
 export default IndoorMap
