@@ -3,6 +3,8 @@ import { ALLOWED_DEVICES } from "@/utils/CONFIG";
 import DeviceDetails from "./DeviceDetails";
 
 const DEFAULT_LIMIT = 1000;
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 export default async function DevicePage({ params }) {
   const { id } = await params;
