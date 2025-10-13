@@ -33,7 +33,8 @@ export const insertData = async (deviceId, data) => {
     device_id: deviceId,
     device_euid: deviceEuid,
     battery: parseInt(convertBatteryLevel(battery)),
-    pos_data: getClosestBeacon(posData)
+    pos_data: getClosestBeacon(posData),
+    estimated_position: estimatePosition(beacons, posData)
   });
 
   if (error) {
@@ -100,4 +101,53 @@ export const getDeviceDataByDate = async ({
   }
 
   return data;
+}
+
+export const rssiToDistance = (rssi, p0 = -59, n = 2.5) => {
+  return Math.pow(10, (p0 - rssi) / (10 * n));
+}
+
+// Convert lat/lon to meters relative to a reference point
+export const latLonToXY = (lat, lon, refLat, refLon) => {
+  const R = 6371000; // Earth radius in meters
+  const x = (lon - refLon) * Math.cos((lat + refLat) / 2 * Math.PI / 180) * R * Math.PI / 180;
+  const y = (lat - refLat) * R * Math.PI / 180;
+  return { x, y };
+}
+
+// Trilateration with 3 circles in 2D
+export const trilaterate = (p1, r1, p2, r2, p3, r3) => {
+  const A = 2 * (p2.x - p1.x);
+  const B = 2 * (p2.y - p1.y);
+  const C = r1 ** 2 - r2 ** 2 - p1.x ** 2 + p2.x ** 2 - p1.y ** 2 + p2.y ** 2;
+  const D = 2 * (p3.x - p2.x);
+  const E = 2 * (p3.y - p2.y);
+  const F = r2 ** 2 - r3 ** 2 - p2.x ** 2 + p3.x ** 2 - p2.y ** 2 + p3.y ** 2;
+
+  const x = (C * E - F * B) / (A * E - B * D);
+  const y = (C * D - A * F) / (B * D - A * E);
+  return { x, y };
+}
+
+// Main
+export const estimatePosition = (beacons, rssiData) => {
+  const macs = rssiData.map(r => r.mac.toUpperCase());
+  const selected = beacons.filter(b => macs.includes(b.mac));
+  const ref = selected[0].position;
+
+  const positionsXY = selected.map((b, i) => {
+    const rssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
+    const dist = rssiToDistance(rssi);
+    const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
+    return { x, y, r: dist };
+  });
+
+  const [p1, p2, p3] = positionsXY;
+  const resultXY = trilaterate(p1, p1.r, p2, p2.r, p3, p3.r);
+
+  // Convert back to lat/lon
+  const lat = ref[0] + (resultXY.y / 6371000) * (180 / Math.PI);
+  const lon = ref[1] + (resultXY.x / (6371000 * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
+
+  return { lat, lon };
 }
