@@ -29,6 +29,11 @@ export const insertData = async (deviceId, data) => {
   const battery = data?.uplink_message?.decoded_payload?.batt_level || null;
   const posData = data?.uplink_message?.decoded_payload?.pos_data || null;
 
+  if (!posData || !deviceEuid) {
+    console.log("No pos data or device euid");
+    return;
+  }
+
   const { error } = await supabase.from("data").insert({
     values: data,
     device_id: deviceId,
