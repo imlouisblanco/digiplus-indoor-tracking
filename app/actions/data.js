@@ -24,6 +24,7 @@ const getClosestBeacon = (posData) => {
 
 export const insertData = async (deviceId, data) => {
   console.log("Inserting data");
+  console.log(data);
   const deviceEuid = data?.end_device_ids?.dev_eui;
   const battery = data?.uplink_message?.decoded_payload?.batt_level || null;
   const posData = data?.uplink_message?.decoded_payload?.pos_data || null;
@@ -32,7 +33,7 @@ export const insertData = async (deviceId, data) => {
     values: data,
     device_id: deviceId,
     device_euid: deviceEuid,
-    battery: parseInt(convertBatteryLevel(battery)),
+    battery: battery ? parseInt(convertBatteryLevel(battery)) : null,
     pos_data: getClosestBeacon(posData),
     estimated_position: estimatePosition(beacons, posData)
   });
