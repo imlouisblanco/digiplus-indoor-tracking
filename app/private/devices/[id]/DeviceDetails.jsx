@@ -73,8 +73,6 @@ export default function DeviceDetails({ id, data }) {
         const exportData = historyData.map(item => ({
             'Fecha y Hora': new Date(item.created_at).toLocaleString("es-CL"),
             'Batería (%)': item.battery,
-            'Beacon más cercano': beacons.find(beacon => beacon.mac.toLowerCase() === item.pos_data.mac.toLowerCase())?.name.toUpperCase() || 'N/A',
-            'RSSI': item.pos_data.rssi
         }));
 
         // Crear libro de trabajo
@@ -165,48 +163,6 @@ export default function DeviceDetails({ id, data }) {
                             </div>
                         </div>
 
-                        {/* Beacon más cercano */}
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
-                            <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
-                                <MapPinIcon className="w-5 h-5 text-teal-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Beacon más cercano</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">
-                                    {currentBeacon?.name.toUpperCase()}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* RSSI */}
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
-                            <div className="w-10 h-10 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                                <SignalIcon className="w-5 h-5 text-cyan-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Intensidad de señal (RSSI)</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">
-                                    {data[0].pos_data.rssi}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mapa */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                    <div className="bg-gradient-to-r from-teal-500 via-[#29f57e] to-emerald-500 p-4">
-                        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <MapPinIcon className="w-5 h-5" />
-                            Ubicación Actual
-                        </h3>
-                    </div>
-                    <div className="h-[calc(100%-60px)]">
-                        <Map data={{
-                            ...data[0],
-                            position: currentBeacon?.position,
-                            color: currentBeacon?.color
-                        }} />
                     </div>
                 </div>
             </section>

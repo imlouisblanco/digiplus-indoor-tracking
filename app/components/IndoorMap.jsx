@@ -20,7 +20,7 @@ const IndoorMap = ({ latestData, lastUpdate, viewMode }) => {
     const groups = Array.from(groupsMap.values())
     return (
         <div className="h-full w-full xl:col-span-9">
-            <MapContainer center={[-33.49541062600386, -70.59621166108582]} zoom={22.2} scrollWheelZoom={false}
+            <MapContainer center={[-33.4154354, -70.5885278]} zoom={22.2} scrollWheelZoom={false}
                 zoomControl={false}
                 style={{ width: "100%", height: "100%", minHeight: "40rem", zIndex: 30 }}
                 className="z-0"
@@ -35,7 +35,7 @@ const IndoorMap = ({ latestData, lastUpdate, viewMode }) => {
                     url="https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}"
                 />
                 <ImageOverlay
-                    url="/gemini_rotated.png"
+                    url="/amsa.png"
                     alt="Map"
                     opacity={1}
                     bounds={[

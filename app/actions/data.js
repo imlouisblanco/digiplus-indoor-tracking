@@ -2,25 +2,79 @@
 import { supabase } from "@/lib/supabase";
 import { beacons } from "@/lib/beacons";
 
+function getBeaconByMac(mac) {
+  return beacons.find(b => b.mac.toUpperCase() === mac.toUpperCase());
+}
+
+function trilaterate(posData) {
+  // Parsear las lecturas
+  const readings = posData
+    .map(r => {
+      const beacon = getBeaconByMac(r.mac);
+      if (!beacon) return null;
+
+      const rssi = parseInt(r.rssi.replace("dBm", ""), 10);
+      const d = rssiToDistance(rssi);
+
+      return { x: beacon.x, y: beacon.y, d };
+    })
+    .filter(Boolean);
+
+  if (readings.length < 3) return null;
+
+  // Ordenar por menor distancia = mejor señal
+  readings.sort((a, b) => a.d - b.d);
+  const used = readings.slice(0, Math.min(5, readings.length));
+
+  // Tomar el primero como referencia
+  const ref = used[0];
+
+  // Construir A^T A y A^T b
+  let A11 = 0, A12 = 0, A22 = 0;
+  let B1 = 0, B2 = 0;
+
+  for (let i = 1; i < used.length; i++) {
+    const p = used[i];
+    const dx = p.x - ref.x;
+    const dy = p.y - ref.y;
+
+    const rhs =
+      0.5 * (
+        (p.x * p.x - ref.x * ref.x) +
+        (p.y * p.y - ref.y * ref.y) +
+        (ref.d * ref.d - p.d * p.d)
+      );
+
+    A11 += dx * dx;
+    A12 += dx * dy;
+    A22 += dy * dy;
+
+    B1 += dx * rhs;
+    B2 += dy * rhs;
+  }
+
+  // Resolver 2x2
+  const det = A11 * A22 - A12 * A12;
+  if (Math.abs(det) < 1e-6) return null;
+
+  const invA11 =  A22 / det;
+  const invA12 = -A12 / det;
+  const invA22 =  A11 / det;
+
+  const x = invA11 * B1 + invA12 * B2;
+  const y = invA12 * B1 + invA22 * B2;
+
+  return { x, y };
+}
+
 const convertBatteryLevel = (battery) => {
   return battery.split("%")[0];
 }
 
-const getClosestBeacon = (posData) => {
-  let closestBeacon = null;
-  let closestDistance = -10000; // -10000 is a very large distance
-
-  posData.forEach(item => {
-    let distance = parseInt(item.rssi.split("d")[0]);
-    if (distance > closestDistance) {
-      closestBeacon = item;
-      closestDistance = distance;
-    }
-  });
-
-  return closestBeacon;
+function rssiToDistance(rssi, rssiAt1m = -59, n = 2.8) {
+  const exponent = (rssiAt1m - rssi) / (10 * n);
+  return Math.pow(10, exponent);  // metros
 }
-
 
 export const insertData = async (deviceId, data) => {
   console.log("Inserting data");
@@ -35,12 +89,10 @@ export const insertData = async (deviceId, data) => {
   }
 
   const { error } = await supabase.from("data").insert({
-    values: data,
     device_id: deviceId,
     device_euid: deviceEuid,
     battery: battery ? parseInt(convertBatteryLevel(battery)) : null,
-    pos_data: getClosestBeacon(posData),
-    estimated_position: estimatePosition(beacons, posData)
+    pos_data: trilaterate(posData),
   });
 
   if (error) {
@@ -108,86 +160,3 @@ export const getDeviceDataByDate = async ({
 
   return data;
 }
-const EARTH_RADIUS = 6371000; // m
-
-const rssiToDistance = (rssi, p0 = -59, n = 3.2) => {
-  return Math.pow(10, (p0 - rssi) / (10 * n));
-};
-
-const adjustDistance = (dist, rssi) => {
-  if (rssi > -60) return dist * 0.5;
-  if (rssi > -65) return dist * 0.8;
-  if (rssi > -70) return dist * 1.0;
-  return dist * 1.4;
-};
-
-const clampDistance = (dist, min = 0.5, max = 6) => Math.min(Math.max(dist, min), max);
-
-const latLonToXY = (lat, lon, refLat, refLon) => {
-  const x = (lon - refLon) * Math.cos((lat + refLat) / 2 * Math.PI / 180) * EARTH_RADIUS * Math.PI / 180;
-  const y = (lat - refLat) * EARTH_RADIUS * Math.PI / 180;
-  return { x, y };
-};
-
-const trilaterate = (p1, r1, p2, r2, p3, r3) => {
-  const A = 2 * (p2.x - p1.x);
-  const B = 2 * (p2.y - p1.y);
-  const C = r1 ** 2 - r2 ** 2 - p1.x ** 2 + p2.x ** 2 - p1.y ** 2 + p2.y ** 2;
-  const D = 2 * (p3.x - p2.x);
-  const E = 2 * (p3.y - p2.y);
-  const F = r2 ** 2 - r3 ** 2 - p2.x ** 2 + p3.x ** 2 - p2.y ** 2 + p3.y ** 2;
-
-  const denominator = A * E - B * D;
-  if (denominator === 0) return null;
-
-  const x = (C * E - F * B) / denominator;
-  const y = (C * D - A * F) / (B * D - A * E);
-  return { x, y };
-};
-
-const estimatePosition = (beacons, rssiData) => {
-  const macs = rssiData.map(r => r.mac.toUpperCase());
-  const selected = beacons.filter(b => macs.includes(b.mac));
-  if (selected.length !== 3) return { lat: null, lon: null };
-
-  const ref = selected[0].position;
-  let strongest = null;
-
-  const positionsXY = selected.map((b) => {
-    const rawRssi = rssiData.find(r => r.mac.toUpperCase() === b.mac).rssi;
-    const rssi = parseInt(rawRssi.replace("dBm", ""), 10);
-    const distRaw = rssiToDistance(rssi);
-    const dist = clampDistance(adjustDistance(distRaw, rssi));
-
-    if (!strongest || rssi > strongest.rssi) {
-      strongest = { rssi, beacon: b, dist };
-    }
-
-    const { x, y } = latLonToXY(b.position[0], b.position[1], ref[0], ref[1]);
-    return { x, y, r: dist, rssi, mac: b.mac };
-  });
-
-  const [p1, p2, p3] = positionsXY;
-  const resultXY = trilaterate(p1, p1.r, p2, p2.r, p3, p3.r);
-  if (!resultXY || !isFinite(resultXY.x) || !isFinite(resultXY.y)) {
-    return { lat: null, lon: null };
-  }
-
-  // Convert back to lat/lon
-  const trilatLat = ref[0] + (resultXY.y / EARTH_RADIUS) * (180 / Math.PI);
-  const trilatLon = ref[1] + (resultXY.x / (EARTH_RADIUS * Math.cos(ref[0] * Math.PI / 180))) * (180 / Math.PI);
-
-  // Si el beacon más fuerte tiene al menos 10 dBm más potencia que el segundo, "atraemos" la posición hacia él
-  const sortedByRssi = positionsXY.sort((a, b) => b.rssi - a.rssi);
-  const diff = sortedByRssi[0].rssi - sortedByRssi[1].rssi;
-
-  if (diff >= 10) {
-    const [bLat, bLon] = strongest.beacon.position;
-    return {
-      lat: bLat * 0.7 + trilatLat * 0.3,
-      lon: bLon * 0.7 + trilatLon * 0.3
-    };
-  }
-
-  return { lat: trilatLat, lon: trilatLon };
-};

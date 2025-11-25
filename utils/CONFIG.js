@@ -1,7 +1,7 @@
 export const ALLOWED_DEVICES = [
-  "mklw004",
-  "mklw001",
-  "mklw003",
-  "mklw002",
-  "mklw006"
+  "eppindoor01",
+  "eppindoor02",
+  "eppindoor03",
+  "eppindoor04",
+  "eppindoor05"
 ];

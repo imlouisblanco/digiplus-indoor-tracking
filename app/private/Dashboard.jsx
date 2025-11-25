@@ -12,10 +12,8 @@ import {
     ChartBarIcon,
     UsersIcon
 } from '@heroicons/react/24/outline';
-import { Switch } from "@/components/ui/switch";
 
-
-const IndoorMap = dynamic(() => import("@/app/components/IndoorMap"), {
+const IndoorKonva = dynamic(() => import("@/app/components/IndoorKonva"), {
     ssr: false
 });
 
@@ -102,52 +100,52 @@ export default function Dashboard({ latestData }) {
                         </div>
                     </div>
 
-                    {/* Contenido principal */}
-                    <div className="flex flex-col xl:grid xl:grid-cols-12 gap-6">
-                        {/* Panel lateral de beacons */}
-                        <div className="w-full xl:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-[#29f57e] via-emerald-500 to-teal-600 p-4">
-                                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                                    <MapPinIcon className="w-5 h-5" />
-                                    Ubicaciones
-                                </h2>
-                                <p className="text-sm text-white/90 mt-1">Distribución por beacon</p>
-                            </div>
-                            <div className="p-4 max-h-[calc(100vh-20rem)] overflow-y-auto">
-                                <div className="flex flex-col gap-3">
-                                    {beacons.map((beacon) => (
-                                        <BeaconCard
-                                            key={beacon.mac}
-                                            beacon={beacon}
-                                            devices={currentData?.filter(device => device.closest_beacon === beacon.mac) || []}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                    <IndoorKonva currentData={currentData} />
 
-                        {/* Mapa */}
-                        <div className="xl:col-span-9 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r flex flex-row items-center justify-between from-teal-500 via-[#29f57e] to-emerald-500 p-4">
-                                <div className="flex flex-col gap-2">
-                                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        <ChartBarIcon className="w-5 h-5" />
-                                        Vista del Plano
-                                    </h2>
-                                    <p className="text-sm text-white/90 mt-1">Visualización en tiempo real</p>
-                                </div>
-                                <div className="flex flex-row gap-2">
-                                    <span className="text-white/90">{experimentalView ? "Vista Experimental" : "Vista Normal"}</span>
-                                    <Switch checked={experimentalView} onCheckedChange={setExperimentalView} />
-                                </div>
-                            </div>
-                            <div className="h-[calc(100vh-16rem)]">
-                                <IndoorMap viewMode={experimentalView ? "experimental" : "normal"} latestData={currentData} lastUpdate={lastUpdate} experimentalView={experimentalView} />
+                    {/* Contenido principal */}
+                    {/* <div className="flex flex-col xl:grid xl:grid-cols-12 gap-6">
+                    <div className="w-full xl:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#29f57e] via-emerald-500 to-teal-600 p-4">
+                            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                                <MapPinIcon className="w-5 h-5" />
+                                Ubicaciones
+                            </h2>
+                            <p className="text-sm text-white/90 mt-1">Distribución por beacon</p>
+                        </div>
+                        <div className="p-4 max-h-[calc(100vh-20rem)] overflow-y-auto">
+                            <div className="flex flex-col gap-3">
+                                {beacons.map((beacon) => (
+                                    <BeaconCard
+                                        key={beacon.mac}
+                                        beacon={beacon}
+                                        devices={currentData?.filter(device => device.closest_beacon === beacon.mac) || []}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
+
+                    <div className="xl:col-span-9 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r flex flex-row items-center justify-between from-teal-500 via-[#29f57e] to-emerald-500 p-4">
+                            <div className="flex flex-col gap-2">
+                                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <ChartBarIcon className="w-5 h-5" />
+                                    Vista del Plano
+                                </h2>
+                                <p className="text-sm text-white/90 mt-1">Visualización en tiempo real</p>
+                            </div>
+                            <div className="flex flex-row gap-2">
+                                <span className="text-white/90">{experimentalView ? "Vista Experimental" : "Vista Normal"}</span>
+                                <Switch checked={experimentalView} onCheckedChange={setExperimentalView} />
+                            </div>
+                        </div>
+                        <div className="h-[calc(100vh-16rem)]">
+                            <IndoorMap viewMode={experimentalView ? "experimental" : "normal"} latestData={currentData} lastUpdate={lastUpdate} experimentalView={experimentalView} />
+                        </div>
+                    </div>
+                </div> */}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
