@@ -93,6 +93,7 @@ export const insertData = async (deviceId, data) => {
     device_euid: deviceEuid,
     battery: battery ? parseInt(convertBatteryLevel(battery)) : null,
     pos_data: trilaterate(posData),
+    values: posData
   });
 
   if (error) {
