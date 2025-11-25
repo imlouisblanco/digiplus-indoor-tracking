@@ -1,16 +1,10 @@
 'use client'
 import dynamic from "next/dynamic";
-import { beacons } from "@/lib/beacons";
-import { useState, useEffect } from "react";
-import { getDevicesLatestData } from "@/app/actions/data";
 import { Badge } from "@/components/ui/badge";
 import {
     MapPinIcon,
     CpuChipIcon,
-    ClockIcon,
-    ArrowPathIcon,
-    ChartBarIcon,
-    UsersIcon
+    ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const IndoorKonva = dynamic(() => import("@/app/components/IndoorKonva"), {
@@ -54,33 +48,7 @@ const BeaconCard = ({ beacon, devices }) => {
     );
 };
 
-export default function Dashboard({ latestData }) {
-    const [currentData, setCurrentData] = useState(latestData);
-    const [lastUpdate, setLastUpdate] = useState(new Date());
-    const [isUpdating, setIsUpdating] = useState(false);
-    const [experimentalView, setExperimentalView] = useState(false);
-
-    const updateData = async () => {
-        setIsUpdating(true);
-        const newData = await getDevicesLatestData();
-        setCurrentData(newData);
-        setLastUpdate(new Date());
-        setIsUpdating(false);
-    }
-
-    useEffect(() => {
-        const interval = setInterval(async () => {
-            updateData();
-        }, updateInterval);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const totalDevices = currentData?.length || 0;
-    const beaconsWithDevices = beacons.filter(beacon =>
-        currentData?.some(device => device.closest_beacon === beacon.mac)
-    ).length;
-
+export default function Dashboard() {
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-100">
             <main className="mx-auto px-6 py-6 w-full">
@@ -100,7 +68,7 @@ export default function Dashboard({ latestData }) {
                         </div>
                     </div>
 
-                    <IndoorKonva currentData={currentData} />
+                    <IndoorKonva />
 
                     {/* Contenido principal */}
                     {/* <div className="flex flex-col xl:grid xl:grid-cols-12 gap-6">

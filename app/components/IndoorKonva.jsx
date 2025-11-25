@@ -4,11 +4,13 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { Stage, Layer, Image as KonvaImage, Circle } from 'react-konva'
 import useImage from 'use-image'
 import { beacons } from '@/lib/beacons'
+import { useRealtimePositions } from '@/hooks/useRealtimePositions'
 // Definir beacons con coordenadas en metros (x, y) relativas al plano
 // x: 0 a REAL_WIDTH (largo), y: 0 a REAL_HEIGHT (ancho)
 // Puedes agregar más beacons aquí con sus coordenadas en metros
 
-const IndoorKonva = ({ currentData }) => {
+const IndoorKonva = () => {
+    const { devicesData } = useRealtimePositions()
     // Dimensiones reales del plano en metros
     const REAL_WIDTH = 40 // metros (largo)
     const REAL_HEIGHT = 20 // metros (ancho)
@@ -168,7 +170,7 @@ const IndoorKonva = ({ currentData }) => {
                         />
                     ))}
 
-                    {currentData.map((device, index) => device.pos_data && device.pos_data.x && device.pos_data.y && (
+                    {devicesData && Object.values(devicesData).map((device, index) => device.pos_data && device.pos_data.x && device.pos_data.y && (
                         <Circle
                             key={`device-${index}`}
                             x={device.pos_data.x * metersToPixels.x}

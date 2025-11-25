@@ -1,20 +1,22 @@
-import { getDevicesLatestData } from "@/app/actions/data";
+'use client'
+import { useRealtimePositions } from "@/hooks/useRealtimePositions";
 import { ALLOWED_DEVICES } from "@/utils/CONFIG";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
   Battery100Icon,
-  SignalIcon,
   ClockIcon,
   MapPinIcon,
   CpuChipIcon,
   ArrowRightIcon,
   ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import { beacons } from "@/lib/beacons";
 
-const DeviceCard = ({ deviceId, data }) => {
+const DeviceCard = ({ deviceId }) => {
+  const { devicesData } = useRealtimePositions();
+  const data = devicesData?.[deviceId];
+
   const getBatteryColor = battery => {
     if (battery >= 70) return "bg-gradient-to-r from-[#29f57e] to-emerald-500";
     if (battery >= 30) return "bg-yellow-500";
@@ -172,10 +174,10 @@ const DeviceCard = ({ deviceId, data }) => {
   );
 };
 
-export default async function DevicesPage() {
-  const latestData = await getDevicesLatestData();
+export default function DevicesPage() {
+  const { devicesData } = useRealtimePositions();
   const devicesWithData = ALLOWED_DEVICES.filter(device =>
-    latestData.find(d => d.device_id === device)
+    devicesData?.[device]
   ).sort((a, b) => a.battery - b.battery);
   const devicesWithoutData = ALLOWED_DEVICES.filter(
     device => !devicesWithData.includes(device)
@@ -215,7 +217,7 @@ export default async function DevicesPage() {
           <DeviceCard
             key={`device-with-data-${index}`}
             deviceId={device}
-            data={latestData.find(d => d.device_id === device) || null}
+            data={devicesData?.[device] || null}
           />
         )}
         {devicesWithoutData.map((device, index) =>
