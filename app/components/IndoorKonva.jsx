@@ -170,9 +170,9 @@ const IndoorKonva = () => {
                         />
                     ))}
 
-                    {devicesData && Object.values(devicesData).map((device, index) => device.pos_data && device.pos_data.x && device.pos_data.y && (
+                    {devicesData && Object.values(devicesData).map((device) => device.pos_data && device.pos_data.x && device.pos_data.y && (
                         <Circle
-                            key={`device-${index}`}
+                            key={`device-${device.device_id}`}
                             x={device.pos_data.x * metersToPixels.x}
                             y={device.pos_data.y * metersToPixels.y}
                             radius={5}

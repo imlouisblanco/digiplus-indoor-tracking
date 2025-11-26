@@ -16,6 +16,23 @@ export function useRealtimePositions() {
                 },
                 (payload) => {
                     const p = payload.new;
+                    console.log('[New Data]', p);
+                    setDevicesData(prev => ({
+                        ...prev,
+                        [p.device_id]: p
+                    }));
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'data'
+                },
+                (payload) => {
+                    const p = payload.new;
+                    console.log('[Updated Data]', p);
                     setDevicesData(prev => ({
                         ...prev,
                         [p.device_id]: p
@@ -27,5 +44,5 @@ export function useRealtimePositions() {
         return () => supabase.removeChannel(channel);
     }, []);
 
-    return devicesData;
+    return { devicesData };
 }
