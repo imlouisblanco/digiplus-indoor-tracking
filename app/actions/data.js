@@ -19,8 +19,21 @@ function trilaterate(posData) {
       return { x: beacon.x, y: beacon.y, d };
     })
     .filter(Boolean);
-
-  if (readings.length < 3) return null;
+    console.log('[Readings]', readings);
+  if (readings.length < 3) {
+    console.log("Not enough readings to trilaterate");
+    console.log(readings);
+    //If not enough readings, return the reading with the best signal
+    const readingNotNull = readings.filter( reading => reading !== null);
+    if (readingNotNull.length > 0) {
+      console.log("Using reading with best signal");
+      console.log(readingNotNull);
+      return { x: readingNotNull[0].x, y: readingNotNull[0].y, d: readingNotNull[0].d };
+    } else {
+      console.log("No reading with beacon found");
+      return null;
+    }
+  }
 
   // Ordenar por menor distancia = mejor señal
   readings.sort((a, b) => a.d - b.d);
