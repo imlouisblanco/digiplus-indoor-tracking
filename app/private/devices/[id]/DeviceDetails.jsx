@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { beacons } from "@/lib/beacons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +8,7 @@ import TimeFilter from "@/app/components/TimeFilter";
 import * as XLSX from 'xlsx';
 import {
     Battery100Icon,
-    SignalIcon,
     ClockIcon,
-    MapPinIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     ArrowDownTrayIcon,
@@ -98,19 +95,16 @@ export default function DeviceDetails({ id, data }) {
         return "destructive";
     };
 
-    const currentBeacon = beacons.find(beacon => beacon.mac.toLowerCase() === data[0].pos_data.mac.toLowerCase());
-
     return (
         <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-100 min-h-screen">
             {/* Header con título y badge */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#29f57e] via-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                        <SignalIcon className="w-7 h-7 text-white" />
                     </div>
                     <div>
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-[#29f57e] via-emerald-600 to-teal-700 bg-clip-text text-transparent">
-                            Device {id}
+                            Dispositivo {id}
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">Monitoreo en tiempo real</p>
                     </div>
@@ -168,15 +162,15 @@ export default function DeviceDetails({ id, data }) {
             </section>
 
             {/* Filtros de tiempo */}
-            <TimeFilter
+            {/* <TimeFilter
                 timeFilter={timeFilter}
                 onFilterChange={handleFilterChange}
                 filteredCount={historyData.length}
-            />
+            /> */}
 
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Sección de animación del recorrido */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                {/* <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                     <div className="bg-gradient-to-r from-purple-500 via-[#29f57e] to-pink-600 p-4">
                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                             <FilmIcon className="w-5 h-5" />
@@ -197,7 +191,7 @@ export default function DeviceDetails({ id, data }) {
                             </div>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Sección de Log Data con tabla */}
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -235,23 +229,12 @@ export default function DeviceDetails({ id, data }) {
                                                         Batería
                                                     </div>
                                                 </TableHead>
-                                                <TableHead className="font-semibold text-gray-700">
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPinIcon className="w-4 h-4" />
-                                                        Beacon
-                                                    </div>
-                                                </TableHead>
-                                                <TableHead className="font-semibold text-gray-700">
-                                                    <div className="flex items-center gap-2">
-                                                        <SignalIcon className="w-4 h-4" />
-                                                        RSSI
-                                                    </div>
-                                                </TableHead>
+
+
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {currentData.map((item, index) => {
-                                                const beacon = beacons.find(b => b.mac.toLowerCase() === item.pos_data.mac.toLowerCase());
                                                 return (
                                                     <TableRow key={index} className="hover:bg-emerald-50/50 transition-colors">
                                                         <TableCell className="font-medium text-gray-700">
@@ -267,14 +250,6 @@ export default function DeviceDetails({ id, data }) {
                                                                 </div>
                                                                 <span className="text-sm font-semibold text-gray-700">{item.battery}%</span>
                                                             </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline" className="font-medium hover:bg-emerald-50 transition-colors">
-                                                                {beacon?.name.toUpperCase() || 'N/A'}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="font-medium text-gray-700">
-                                                            {item.pos_data.rssi}
                                                         </TableCell>
                                                     </TableRow>
                                                 );

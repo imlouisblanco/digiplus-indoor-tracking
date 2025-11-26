@@ -13,9 +13,7 @@ import {
   ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 
-const DeviceCard = ({ deviceId }) => {
-  const { devicesData } = useRealtimePositions();
-  const data = devicesData?.[deviceId];
+const DeviceCard = ({ deviceId, data }) => {
 
   const getBatteryColor = battery => {
     if (battery >= 70) return "bg-gradient-to-r from-[#29f57e] to-emerald-500";
@@ -178,7 +176,11 @@ export default function DevicesPage() {
   const { devicesData } = useRealtimePositions();
   const devicesWithData = ALLOWED_DEVICES.filter(device =>
     devicesData?.[device]
-  ).sort((a, b) => a.battery - b.battery);
+  ).sort((a, b) => {
+    const batteryA = devicesData?.[a]?.battery || 0;
+    const batteryB = devicesData?.[b]?.battery || 0;
+    return batteryA - batteryB;
+  });
   const devicesWithoutData = ALLOWED_DEVICES.filter(
     device => !devicesWithData.includes(device)
   );
@@ -213,16 +215,16 @@ export default function DevicesPage() {
 
       {/* Grid de dispositivos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {devicesWithData.map((device, index) =>
+        {devicesWithData.map((device) =>
           <DeviceCard
-            key={`device-with-data-${index}`}
+            key={`device-with-data-${device}`}
             deviceId={device}
             data={devicesData?.[device] || null}
           />
         )}
-        {devicesWithoutData.map((device, index) =>
+        {devicesWithoutData.map((device) =>
           <DeviceCard
-            key={`device-without-data-${index}`}
+            key={`device-without-data-${device}`}
             deviceId={device}
             data={null}
           />
