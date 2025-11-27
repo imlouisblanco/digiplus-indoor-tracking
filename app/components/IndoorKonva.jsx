@@ -186,6 +186,11 @@ const IndoorKonva = () => {
                                                     Batería: {device.battery}%
                                                 </p>
                                             )}
+                                            <p className={`
+                                                text-xs font-medium
+                                            `}>
+                                                Actualizado: {new Date(device.created_at).toLocaleString('es-CL')}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -226,16 +231,39 @@ const IndoorKonva = () => {
                         )}
                         {/* Renderizar beacons como círculos rojos */}
                         {beaconPositions.map((beacon, index) => (
-                            <Circle
-                                key={`beacon-${index}`}
-                                x={beacon.pixelX}
-                                y={beacon.pixelY}
-                                radius={5}
-                                fill="red"
-                                stroke="darkred"
-                                strokeWidth={2}
-                                opacity={0.75}
-                            />
+                            <>
+                                <Circle
+                                    key={`beacon-${index}`}
+                                    x={beacon.pixelX}
+                                    y={beacon.pixelY}
+                                    radius={5}
+                                    fill="red"
+                                    stroke="darkred"
+                                    strokeWidth={2}
+                                    opacity={0.75}
+                                />
+                                <Label x={beacon.pixelX} y={beacon.pixelY}>
+                                    <Tag
+                                        fill="rgba(0, 0, 0, 0)"
+                                        pointerDirection="down"
+                                        pointerWidth={10}
+                                        pointerHeight={10}
+                                        lineJoin="round"
+                                        shadowColor="black"
+                                        shadowBlur={10}
+                                        shadowOffsetX={0}
+                                        shadowOffsetY={0}
+                                    />
+                                    <Text
+                                        text={beacon.name}
+                                        fontFamily="Arial"
+                                        fontSize={10}
+                                        fontStyle="bold"
+                                        padding={2}
+                                        fill="white"
+                                    />
+                                </Label>
+                            </>
                         ))}
 
                         {devicesData && Object.values(devicesData).map((device) => {
