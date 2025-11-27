@@ -16,14 +16,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { getDeviceDataByDate } from "@/app/actions/data";
 
-const Map = dynamic(() => import("./Map"), {
-    ssr: false
-});
-
-const AnimatedMap = dynamic(() => import("./AnimatedMap"), {
-    ssr: false
-});
-
 export default function DeviceDetails({ id, data }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [timeFilter, setTimeFilter] = useState('12h');
@@ -193,8 +185,7 @@ export default function DeviceDetails({ id, data }) {
                     </div>
                 </div> */}
 
-                {/* Sección de Log Data con tabla */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                {/* <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                     <div className="bg-gradient-to-r from-emerald-600 via-[#29f57e] to-teal-500 p-4 flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                             <ClockIcon className="w-5 h-5" />
@@ -258,52 +249,51 @@ export default function DeviceDetails({ id, data }) {
                                     </Table>
                                 </div>
 
-                                {/* Controles de paginación mejorados */}
-                                <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-                                    <div className="text-sm text-gray-600 font-medium">
-                                        Mostrando <span className="font-bold text-emerald-600">{startIndex + 1}</span> - <span className="font-bold text-emerald-600">{Math.min(endIndex, historyData.length)}</span> de <span className="font-bold text-gray-900">{historyData.length}</span> registros
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                            disabled={currentPage === 1}
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-1 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-colors"
-                                        >
-                                            <ChevronLeftIcon className="w-4 h-4" />
-                                            Anterior
-                                        </Button>
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
-                                            <span className="text-sm font-semibold text-gray-700">
-                                                Página <span className="text-emerald-600 font-bold">{currentPage}</span> de <span className="text-gray-900">{totalPages}</span>
-                                            </span>
-                                        </div>
-                                        <Button
-                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                            disabled={currentPage === totalPages}
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-1 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-colors"
-                                        >
-                                            Siguiente
-                                            <ChevronRightIcon className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-12 gap-3">
-                                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <ClockIcon className="w-10 h-10 text-gray-400" />
-                                </div>
-                                <p className="text-gray-500 font-medium">No hay registros en este período para visualizar el recorrido</p>
-                                <p className="text-sm text-gray-400">Selecciona otro rango de tiempo</p>
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+                        <div className="text-sm text-gray-600 font-medium">
+                            Mostrando <span className="font-bold text-emerald-600">{startIndex + 1}</span> - <span className="font-bold text-emerald-600">{Math.min(endIndex, historyData.length)}</span> de <span className="font-bold text-gray-900">{historyData.length}</span> registros
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-colors"
+                            >
+                                <ChevronLeftIcon className="w-4 h-4" />
+                                Anterior
+                            </Button>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                                <span className="text-sm font-semibold text-gray-700">
+                                    Página <span className="text-emerald-600 font-bold">{currentPage}</span> de <span className="text-gray-900">{totalPages}</span>
+                                </span>
                             </div>
-                        )}
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-colors"
+                            >
+                                Siguiente
+                                <ChevronRightIcon className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
+                </>
+                ) : (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                        <ClockIcon className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 font-medium">No hay registros en este período para visualizar el recorrido</p>
+                    <p className="text-sm text-gray-400">Selecciona otro rango de tiempo</p>
                 </div>
-            </section>
+                        )}
         </div>
+                </div > */}
+            </section >
+        </div >
     );
 }

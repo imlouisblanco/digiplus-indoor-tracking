@@ -92,13 +92,6 @@ const DeviceCard = ({ deviceId, data }) => {
               </div>
             </div>
 
-            {/* Beacon más cercano */}
-            <div className="flex items-start gap-2 p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <MapPinIcon className="w-4 h-4 text-teal-600" />
-              </div>
-            </div>
-
             {/* Batería */}
             <div className="flex items-start gap-2 p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
               <div

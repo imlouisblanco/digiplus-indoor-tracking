@@ -231,7 +231,7 @@ const IndoorKonva = () => {
                         )}
                         {/* Renderizar beacons como círculos rojos */}
                         {beaconPositions.map((beacon, index) => (
-                            <>
+                            <React.Fragment key={`beacon-${index}`}>
                                 <Circle
                                     key={`beacon-${index}`}
                                     x={beacon.pixelX}
@@ -263,7 +263,7 @@ const IndoorKonva = () => {
                                         fill="white"
                                     />
                                 </Label>
-                            </>
+                            </React.Fragment>
                         ))}
 
                         {devicesData && Object.values(devicesData).map((device) => {

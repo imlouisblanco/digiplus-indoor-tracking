@@ -44,13 +44,46 @@ export function useRealtimePositions() {
                     schema: 'public',
                     table: 'data'
                 },
-                (payload) => {
-                    const p = payload.new;
-                    console.log('[New Data]', p);
-                    setDevicesData(prev => ({
-                        ...prev,
-                        [p.device_id]: p
-                    }));
+                (p) => {
+                    // const p = payload.new;
+                    // console.log('[New Data]', p);
+                    // setDevicesData(prev => ({
+                    //     ...prev,
+                    //     [p.device_id]: p
+                    // }));
+                    setDevicesData((prev) => {
+                        const prevDevice = prev[p.device_id];
+                        const prevPos = prevDevice?.pos_data;
+
+                        const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
+                        const MIN_MOVE = 0.01;      // metros: ignorar cambios menores
+
+                        let filteredPos = p.pos_data;
+
+                        if (prevPos) {
+                            const dx = p.pos_data.x - prevPos.x;
+                            const dy = p.pos_data.y - prevPos.y;
+                            const dist = Math.hypot(dx, dy);
+
+                            if (dist < MIN_MOVE) {
+                                // muy poca diferencia → consideramos que es ruido
+                                filteredPos = prevPos;
+                            } else {
+                                // suavizar el cambio
+                                filteredPos = {
+                                    x: prevPos.x + ALPHA * dx,
+                                    y: prevPos.y + ALPHA * dy,
+                                };
+                            }
+                        }
+                        return {
+                            ...prev,
+                            [p.device_id]: {
+                                ...prevDevice,
+                                pos_data: filteredPos
+                            }
+                        };
+                    });
                 }
             )
             .on(
@@ -60,13 +93,40 @@ export function useRealtimePositions() {
                     schema: 'public',
                     table: 'data'
                 },
-                (payload) => {
-                    const p = payload.new;
-                    console.log('[Updated Data]', p);
-                    setDevicesData(prev => ({
-                        ...prev,
-                        [p.device_id]: p
-                    }));
+                (p) => {
+                    setDevicesData((prev) => {
+                        const prevDevice = prev[p.device_id];
+                        const prevPos = prevDevice?.pos_data;
+
+                        const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
+                        const MIN_MOVE = 0.8;      // metros: ignorar cambios menores
+
+                        let filteredPos = p.pos_data;
+
+                        if (prevPos) {
+                            const dx = p.pos_data.x - prevPos.x;
+                            const dy = p.pos_data.y - prevPos.y;
+                            const dist = Math.hypot(dx, dy);
+
+                            if (dist < MIN_MOVE) {
+                                // muy poca diferencia → consideramos que es ruido
+                                filteredPos = prevPos;
+                            } else {
+                                // suavizar el cambio
+                                filteredPos = {
+                                    x: prevPos.x + ALPHA * dx,
+                                    y: prevPos.y + ALPHA * dy,
+                                };
+                            }
+                        }
+                        return {
+                            ...prev,
+                            [p.device_id]: {
+                                ...prevDevice,
+                                pos_data: filteredPos
+                            }
+                        };
+                    });
                 }
             )
             .subscribe();
