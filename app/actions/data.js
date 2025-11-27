@@ -6,6 +6,9 @@ function getBeaconByMac(mac) {
   return beacons.find(b => b.mac.toUpperCase() === mac.toUpperCase());
 }
 
+const REAL_WIDTH = 40;  // largo en metros
+const REAL_HEIGHT = 20; // ancho en metros
+
 function trilaterate(posData) {
   // Parsear las lecturas
   const readings = posData
@@ -14,25 +17,25 @@ function trilaterate(posData) {
       if (!beacon) return null;
 
       const rssi = parseInt(r.rssi.replace("dBm", ""), 10);
-      const d = rssiToDistance(rssi);
+      const d = rssiToDistance(rssi); // metros
 
-      return { x: beacon.x, y: beacon.y, d };
+      return { x: beacon.x, y: beacon.y, d, rssi };
     })
     .filter(Boolean);
-    console.log('[Readings]', readings);
+
+  console.log('[Readings]', readings);
+
+  if (readings.length === 0) {
+    console.log("No reading with beacon found");
+    return null;
+  }
+
+  // Si hay 1 o 2 lecturas, usar la de mejor señal como aproximación
   if (readings.length < 3) {
-    console.log("Not enough readings to trilaterate");
-    console.log(readings);
-    //If not enough readings, return the reading with the best signal
-    const readingNotNull = readings.filter( reading => reading !== null);
-    if (readingNotNull.length > 0) {
-      console.log("Using reading with best signal");
-      console.log(readingNotNull);
-      return { x: readingNotNull[0].x, y: readingNotNull[0].y, d: readingNotNull[0].d };
-    } else {
-      console.log("No reading with beacon found");
-      return null;
-    }
+    console.log("Not enough readings to trilaterate, using best signal");
+    // mejor señal = mayor RSSI (menos negativo) o menor distancia
+    const best = readings.sort((a, b) => a.d - b.d)[0];
+    return clampToFloor({ x: best.x, y: best.y });
   }
 
   // Ordenar por menor distancia = mejor señal
@@ -68,14 +71,30 @@ function trilaterate(posData) {
 
   // Resolver 2x2
   const det = A11 * A22 - A12 * A12;
-  if (Math.abs(det) < 1e-6) return null;
+  if (Math.abs(det) < 1e-6) {
+    console.log("Determinante ~0, fallback a mejor beacon");
+    const best = readings[0];
+    return clampToFloor({ x: best.x, y: best.y });
+  }
 
   const invA11 =  A22 / det;
   const invA12 = -A12 / det;
   const invA22 =  A11 / det;
 
-  const x = invA11 * B1 + invA12 * B2;
-  const y = invA12 * B1 + invA22 * B2;
+  let x = invA11 * B1 + invA12 * B2;
+  let y = invA12 * B1 + invA22 * B2;
+
+  // Clampear al piso definido
+  return clampToFloor({ x, y });
+}
+
+// Acotar a los límites físicos del plano
+function clampToFloor(pos) {
+  let x = pos.x;
+  let y = pos.y;
+
+  x = Math.max(0, Math.min(REAL_WIDTH, x));
+  y = Math.max(0, Math.min(REAL_HEIGHT, y));
 
   return { x, y };
 }

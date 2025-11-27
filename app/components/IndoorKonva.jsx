@@ -55,15 +55,16 @@ const IndoorKonva = () => {
     }, [image, containerSize.width, containerSize.height])
 
     // Convertir coordenadas de metros a píxeles del canvas
-    const metersToPixels = useMemo(() => {
-        if (imageDimensions.width === 0 || imageDimensions.height === 0) {
-            return { x: 0, y: 0 }
-        }
+
+    const scaleX = imageDimensions.width / REAL_WIDTH;
+    const scaleY = imageDimensions.height / REAL_HEIGHT;
+
+    const metersToPixels = (xM, yM) => {
         return {
-            x: imageDimensions.width / REAL_WIDTH, // píxeles por metro en x
-            y: imageDimensions.height / REAL_HEIGHT // píxeles por metro en y
-        }
-    }, [imageDimensions.width, imageDimensions.height])
+            x: xM * scaleX,
+            y: yM * scaleY, // origen abajo-izquierda
+        };
+    }
 
     // Calcular posiciones de los beacons en píxeles
     const beaconPositions = useMemo(() => {
@@ -175,8 +176,9 @@ const IndoorKonva = () => {
                             key={`device-${device.device_id}`}
                             x={device.pos_data.x * metersToPixels.x}
                             y={device.pos_data.y * metersToPixels.y}
-                            radius={5}
-                            fill="blue"
+                            radius={10}
+                            className="animate-pulse"
+                            fill="rgba(37, 99, 235, 1)"
                             stroke="darkblue"
                             strokeWidth={2}
                             opacity={0.9}
