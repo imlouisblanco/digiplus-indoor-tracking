@@ -175,14 +175,15 @@ const IndoorKonva = () => {
                                             `}>
                                                 {device.device_id}
                                             </p>
+                                            <p className={`
+                                                text-sm font-semibold truncate
+                                                ${isSelected ? 'text-blue-700' : 'text-gray-700'}
+                                            `}>
+                                                {device.device_euid}
+                                            </p>
                                             {device.battery !== null && device.battery !== undefined && (
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     Batería: {device.battery}%
-                                                </p>
-                                            )}
-                                            {device.pos_data && (
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    ({device.pos_data.x.toFixed(1)}m, {device.pos_data.y.toFixed(1)}m)
                                                 </p>
                                             )}
                                         </div>
