@@ -6,10 +6,12 @@ function getBeaconByMac(mac) {
   return beacons.find(b => b.mac.toUpperCase() === mac.toUpperCase());
 }
 
-const REAL_WIDTH  = 40;
-const REAL_HEIGHT = 30;
-const MIN_RSSI_FOR_TRILAT = -80;   // más débil que esto, mejor ignorarlo
-const MAX_DISTANCE = 20;           // no tiene sentido distancias > tamaño del piso
+const REAL_WIDTH  = 40; // largo en metros
+const REAL_HEIGHT = 30; // ancho en metros
+
+const MIN_RSSI_FOR_TRILAT = -80; // más débil que esto: no muy confiable para trilaterar
+const MAX_DISTANCE = 40;         // no tiene sentido d > tamaño del piso aprox
+const MAX_MEAN_ERROR = 5;        // metros de error promedio aceptable para trilateración
 
 function clampToFloor(pos) {
   let x = pos.x;
@@ -21,8 +23,8 @@ function clampToFloor(pos) {
   return { x, y };
 }
 
-function trilaterate(posData) {
-  const readings = posData
+function buildReadings(posData) {
+  return posData
     .map(r => {
       const beacon = getBeaconByMac(r.mac);
       if (!beacon) return null;
@@ -31,26 +33,41 @@ function trilaterate(posData) {
       const dRaw = rssiToDistance(rssi);
       const d = Math.min(dRaw, MAX_DISTANCE); // capear distancia
 
-      return { x: beacon.x, y: beacon.y, d, rssi };
+      return {
+        x: beacon.x,
+        y: beacon.y,
+        rssi,
+        d,
+      };
     })
     .filter(Boolean);
+}
 
+function centroidPosition(readings) {
   if (readings.length === 0) return null;
 
-  // 1) Priorizar beacons con buena señal
-  const strong = readings.filter(r => r.rssi >= MIN_RSSI_FOR_TRILAT);
+  let sumW = 0;
+  let sumX = 0;
+  let sumY = 0;
 
-  let used = strong.length >= 3 ? strong : readings;
-
-  // Si seguimos con menos de 3, usar el beacon más cercano como aproximación
-  if (used.length < 3) {
-    const best = used.sort((a, b) => a.d - b.d)[0];
-    return clampToFloor({ x: best.x, y: best.y });
+  for (const r of readings) {
+    const w = 1 / (r.d * r.d + 1e-6); // los cercanos pesan más
+    sumW += w;
+    sumX += w * r.x;
+    sumY += w * r.y;
   }
 
-  // Ordenar y tomar hasta 5
-  used = [...used].sort((a, b) => a.d - b.d).slice(0, 5);
+  return clampToFloor({
+    x: sumX / sumW,
+    y: sumY / sumW,
+  });
+}
 
+function trilaterateRaw(readings) {
+  if (readings.length < 3) return null;
+
+  // ordenar por menor distancia y usar hasta 5
+  const used = [...readings].sort((a, b) => a.d - b.d).slice(0, 5);
   const ref = used[0];
 
   let A11 = 0, A12 = 0, A22 = 0;
@@ -77,20 +94,71 @@ function trilaterate(posData) {
   }
 
   const det = A11 * A22 - A12 * A12;
-  if (Math.abs(det) < 1e-6) {
-    // geometría mala (casi colineal, distancias raras, etc.)
-    const best = used[0];
-    return clampToFloor({ x: best.x, y: best.y });
-  }
+  if (Math.abs(det) < 1e-6) return null;
 
   const invA11 =  A22 / det;
   const invA12 = -A12 / det;
   const invA22 =  A11 / det;
 
-  let x = invA11 * B1 + invA12 * B2;
-  let y = invA12 * B1 + invA22 * B2;
+  const x = invA11 * B1 + invA12 * B2;
+  const y = invA12 * B1 + invA22 * B2;
 
-  return clampToFloor({ x, y });
+  return { x, y, used };
+}
+
+function trilatError(pos, readings) {
+  if (!pos || !readings || readings.length === 0) return Infinity;
+
+  let sumAbs = 0;
+
+  for (const r of readings) {
+    const distModel = Math.hypot(pos.x - r.x, pos.y - r.y);
+    sumAbs += Math.abs(distModel - r.d);
+  }
+
+  return sumAbs / readings.length; // error promedio en metros
+}
+
+function estimatePosition(posData) {
+  const readingsAll = buildReadings(posData);
+  if (readingsAll.length === 0) {
+    console.log("Sin beacons válidos");
+    return null;
+  }
+
+  // Centroide siempre disponible
+  const centroid = centroidPosition(readingsAll);
+
+  // Filtrar lecturas “fuertes” para trilateración
+  const strong = readingsAll.filter(r => r.rssi >= MIN_RSSI_FOR_TRILAT);
+  const trilatReadings = strong.length >= 3 ? strong : readingsAll;
+
+  let trilat = null;
+  let error = Infinity;
+
+  if (trilatReadings.length >= 3) {
+    const raw = trilaterateRaw(trilatReadings);
+    if (raw) {
+      const clamped = clampToFloor({ x: raw.x, y: raw.y });
+      trilat = clamped;
+      error = trilatError(clamped, trilatReadings);
+    }
+  }
+
+  // Decisión: si la trilateración es razonable, úsala; si no, centroide
+  if (trilat && error <= MAX_MEAN_ERROR) {
+    return {
+      ...trilat,
+      method: "trilateration",
+      error,
+    };
+  } else {
+    return {
+      ...centroid,
+      method: trilat ? "centroid_fallback" : "centroid_only",
+      error,
+    };
+  }
 }
 
 
@@ -119,7 +187,7 @@ export const insertData = async (deviceId, data) => {
     device_id: deviceId,
     device_euid: deviceEuid,
     battery: battery ? parseInt(convertBatteryLevel(battery)) : null,
-    pos_data: trilaterate(posData),
+    pos_data: estimatePosition(posData),
     values: posData
   });
 
