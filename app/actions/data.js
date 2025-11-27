@@ -6,9 +6,6 @@ function getBeaconByMac(mac) {
   return beacons.find(b => b.mac.toUpperCase() === mac.toUpperCase());
 }
 
-const REAL_WIDTH = 40;  // largo en metros
-const REAL_HEIGHT = 20; // ancho en metros
-
 function trilaterate(posData) {
   // Parsear las lecturas
   const readings = posData

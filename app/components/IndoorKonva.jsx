@@ -13,7 +13,7 @@ const IndoorKonva = () => {
     const { devicesData } = useRealtimePositions()
     // Dimensiones reales del plano en metros
     const REAL_WIDTH = 40 // metros (largo)
-    const REAL_HEIGHT = 20 // metros (ancho)
+    const REAL_HEIGHT = 30 // metros (ancho)
 
     // Dimensiones del contenedor
     const [containerSize, setContainerSize] = useState({ width: 1280, height: 720 })
