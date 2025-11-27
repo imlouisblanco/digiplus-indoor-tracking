@@ -6,43 +6,53 @@ function getBeaconByMac(mac) {
   return beacons.find(b => b.mac.toUpperCase() === mac.toUpperCase());
 }
 
+const REAL_WIDTH  = 40;
+const REAL_HEIGHT = 30;
+const MIN_RSSI_FOR_TRILAT = -80;   // más débil que esto, mejor ignorarlo
+const MAX_DISTANCE = 20;           // no tiene sentido distancias > tamaño del piso
+
+function clampToFloor(pos) {
+  let x = pos.x;
+  let y = pos.y;
+
+  x = Math.max(0, Math.min(REAL_WIDTH, x));
+  y = Math.max(0, Math.min(REAL_HEIGHT, y));
+
+  return { x, y };
+}
+
 function trilaterate(posData) {
-  // Parsear las lecturas
   const readings = posData
     .map(r => {
       const beacon = getBeaconByMac(r.mac);
       if (!beacon) return null;
 
       const rssi = parseInt(r.rssi.replace("dBm", ""), 10);
-      const d = rssiToDistance(rssi); // metros
+      const dRaw = rssiToDistance(rssi);
+      const d = Math.min(dRaw, MAX_DISTANCE); // capear distancia
 
       return { x: beacon.x, y: beacon.y, d, rssi };
     })
     .filter(Boolean);
 
-  console.log('[Readings]', readings);
+  if (readings.length === 0) return null;
 
-  if (readings.length === 0) {
-    console.log("No reading with beacon found");
-    return null;
-  }
+  // 1) Priorizar beacons con buena señal
+  const strong = readings.filter(r => r.rssi >= MIN_RSSI_FOR_TRILAT);
 
-  // Si hay 1 o 2 lecturas, usar la de mejor señal como aproximación
-  if (readings.length < 3) {
-    console.log("Not enough readings to trilaterate, using best signal");
-    // mejor señal = mayor RSSI (menos negativo) o menor distancia
-    const best = readings.sort((a, b) => a.d - b.d)[0];
+  let used = strong.length >= 3 ? strong : readings;
+
+  // Si seguimos con menos de 3, usar el beacon más cercano como aproximación
+  if (used.length < 3) {
+    const best = used.sort((a, b) => a.d - b.d)[0];
     return clampToFloor({ x: best.x, y: best.y });
   }
 
-  // Ordenar por menor distancia = mejor señal
-  readings.sort((a, b) => a.d - b.d);
-  const used = readings.slice(0, Math.min(5, readings.length));
+  // Ordenar y tomar hasta 5
+  used = [...used].sort((a, b) => a.d - b.d).slice(0, 5);
 
-  // Tomar el primero como referencia
   const ref = used[0];
 
-  // Construir A^T A y A^T b
   let A11 = 0, A12 = 0, A22 = 0;
   let B1 = 0, B2 = 0;
 
@@ -66,11 +76,10 @@ function trilaterate(posData) {
     B2 += dy * rhs;
   }
 
-  // Resolver 2x2
   const det = A11 * A22 - A12 * A12;
   if (Math.abs(det) < 1e-6) {
-    console.log("Determinante ~0, fallback a mejor beacon");
-    const best = readings[0];
+    // geometría mala (casi colineal, distancias raras, etc.)
+    const best = used[0];
     return clampToFloor({ x: best.x, y: best.y });
   }
 
@@ -81,20 +90,7 @@ function trilaterate(posData) {
   let x = invA11 * B1 + invA12 * B2;
   let y = invA12 * B1 + invA22 * B2;
 
-  // Clampear al piso definido
   return clampToFloor({ x, y });
-}
-function clampToFloor(pos) {
-  const REAL_WIDTH  = 40; // largo
-  const REAL_HEIGHT = 30; // ancho
-
-  let x = pos.x;
-  let y = pos.y;
-
-  x = Math.max(0, Math.min(REAL_WIDTH, x));
-  y = Math.max(0, Math.min(REAL_HEIGHT, y));
-
-  return { x, y };
 }
 
 
@@ -132,32 +128,6 @@ export const insertData = async (deviceId, data) => {
   }
 
   console.log("Data inserted successfully");
-}
-
-const addDevicePositionFromBeacon = (data) => {
-  const beacon = beacons.find(beacon => beacon.mac.toLowerCase() === data.pos_data?.mac.toLowerCase());
-
-  if (beacon) {
-    data.position = beacon.position;
-    data.color = beacon.color;
-    data.closest_beacon = beacon.mac;
-  }
-}
-
-export const getDevicesLatestData = async () => {
-  const { data, error } = await supabase
-  .from("latest_data")
-  .select("*")
-
-  if (error) {
-    console.log(error.message);
-  }
-
-  data.forEach(item => {
-    addDevicePositionFromBeacon(item);
-  });
-
-  return data;
 }
 
 export const getDeviceData = async ({

@@ -59,13 +59,6 @@ const IndoorKonva = () => {
     const scaleX = imageDimensions.width / REAL_WIDTH;
     const scaleY = imageDimensions.height / REAL_HEIGHT;
 
-    function metersToPixels(xM, yM) {
-        return {
-            x: xM * scaleX,
-            y: yM * scaleY,
-        };
-    }
-
     // Calcular posiciones de los beacons en píxeles
     const beaconPositions = useMemo(() => {
         return beacons.map(beacon => ({
@@ -132,117 +125,184 @@ const IndoorKonva = () => {
         }
     }, [image, imageDimensions.width, imageDimensions.height, containerSize.width, containerSize.height, isInitialized])
 
+    // Filtrar dispositivos que tienen posición válida
+    const devicesWithPosition = useMemo(() => {
+        if (!devicesData) return [];
+        return Object.values(devicesData).filter(
+            device => device.pos_data && device.pos_data.x && device.pos_data.y
+        );
+    }, [devicesData])
+
+    // Función para seleccionar un dispositivo desde la lista (sin mover el plano)
+    const handleDeviceClick = (device) => {
+        // Si ya está seleccionado, deseleccionarlo; si no, seleccionarlo
+        setSelectedDevice(selectedDevice === device.device_id ? null : device.device_id);
+    }
+
     return (
-        <div
-            ref={containerRef}
-            className="w-full h-full min-h-[600px] bg-gray-100 overflow-hidden relative"
-        >
-            <Stage
-                width={containerSize.width}
-                height={containerSize.height}
-                onWheel={handleWheel}
-                onDragEnd={handleDragEnd}
-                onClick={(e) => {
-                    // Cerrar tooltip si se hace click fuera de un dispositivo
-                    if (e.target === e.target.getStage()) {
-                        setSelectedDevice(null);
-                    }
-                }}
-                x={position.x}
-                y={position.y}
-                scaleX={scale}
-                scaleY={scale}
-            >
-                <Layer>
-                    {image && (
-                        <KonvaImage
-                            image={image}
-                            width={imageDimensions.width}
-                            height={imageDimensions.height}
-                            x={0}
-                            y={0}
-                        />
+        <div className='flex flex-col lg:flex-row gap-4'>
+            <div className="w-full lg:w-64 bg-white rounded-lg shadow-lg p-4 h-full lg:sticky lg:top-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Dispositivos</h3>
+                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                    {devicesWithPosition.length === 0 ? (
+                        <p className="text-sm text-gray-500 text-center py-4">
+                            No hay dispositivos con posición
+                        </p>
+                    ) : (
+                        devicesWithPosition.map((device) => {
+                            const isSelected = selectedDevice === device.device_id;
+                            return (
+                                <div
+                                    key={device.device_id}
+                                    onClick={() => handleDeviceClick(device)}
+                                    className={`
+                                        p-3 rounded-lg cursor-pointer transition-all duration-200
+                                        ${isSelected
+                                            ? 'bg-blue-100 border-2 border-blue-500 shadow-md'
+                                            : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100 hover:border-gray-300'
+                                        }
+                                    `}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`
+                                            w-3 h-3 rounded-full flex-shrink-0
+                                            ${isSelected ? 'bg-blue-500' : 'bg-blue-400'}
+                                        `} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`
+                                                text-sm font-semibold truncate
+                                                ${isSelected ? 'text-blue-700' : 'text-gray-700'}
+                                            `}>
+                                                {device.device_id}
+                                            </p>
+                                            {device.battery !== null && device.battery !== undefined && (
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Batería: {device.battery}%
+                                                </p>
+                                            )}
+                                            {device.pos_data && (
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    ({device.pos_data.x.toFixed(1)}m, {device.pos_data.y.toFixed(1)}m)
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
                     )}
-                    {/* Renderizar beacons como círculos rojos */}
-                    {beaconPositions.map((beacon, index) => (
-                        <Circle
-                            key={`beacon-${index}`}
-                            x={beacon.pixelX}
-                            y={beacon.pixelY}
-                            radius={5}
-                            fill="red"
-                            stroke="darkred"
-                            strokeWidth={2}
-                            opacity={0.75}
-                        />
-                    ))}
-
-                    {devicesData && Object.values(devicesData).map((device) => {
-                        if (!device.pos_data || !device.pos_data.x || !device.pos_data.y) return null;
-
-                        const deviceX = device.pos_data.x * scaleX;
-                        const deviceY = device.pos_data.y * scaleY;
-                        const isSelected = selectedDevice === device.device_id;
-
-                        return (
-                            <React.Fragment key={`device-${device.device_id}`}>
-                                <Circle
-                                    x={deviceX}
-                                    y={deviceY}
-                                    radius={5}
-                                    className="animate-pulse"
-                                    fill="rgba(37, 99, 235, 1)"
-                                    stroke={isSelected ? "yellow" : "white"}
-                                    strokeWidth={isSelected ? 3 : 1}
-                                    opacity={0.9}
-                                    onClick={() => setSelectedDevice(isSelected ? null : device.device_id)}
-                                    onTap={() => setSelectedDevice(isSelected ? null : device.device_id)}
-                                />
-                                {isSelected && (
-                                    <Label x={deviceX} y={deviceY - 30}>
-                                        <Tag
-                                            fill="rgba(0, 0, 0, 0.8)"
-                                            pointerDirection="down"
-                                            pointerWidth={10}
-                                            pointerHeight={10}
-                                            lineJoin="round"
-                                            shadowColor="black"
-                                            shadowBlur={10}
-                                            shadowOffsetX={0}
-                                            shadowOffsetY={0}
-                                            shadowOpacity={0.5}
-                                        />
-                                        <Text
-                                            text={device.device_id}
-                                            fontFamily="Arial"
-                                            fontSize={14}
-                                            fontStyle="bold"
-                                            padding={8}
-                                            fill="white"
-                                        />
-                                    </Label>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
-                </Layer>
-            </Stage>
-
-            {/* Información de escala */}
-            <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 px-4 py-2 rounded shadow-lg z-10">
-                <p className="text-sm font-semibold">Escala del plano</p>
-                <p className="text-xs text-gray-600">
-                    Dimensiones reales: {REAL_WIDTH}m × {REAL_HEIGHT}m
-                </p>
-                <p className="text-xs text-gray-600">
-                    Zoom: {(scale * 100).toFixed(0)}%
-                </p>
-                <p className="text-xs text-gray-600">
-                    Beacons: {beacons.length}
-                </p>
+                </div>
             </div>
-        </div>
-    )
+            <div
+                ref={containerRef}
+                className="w-full h-full min-h-[600px] bg-gray-100 overflow-hidden relative"
+            >
+                <Stage
+                    width={containerSize.width}
+                    height={containerSize.height}
+                    onWheel={handleWheel}
+                    onDragEnd={handleDragEnd}
+                    onClick={(e) => {
+                        // Cerrar tooltip si se hace click fuera de un dispositivo
+                        if (e.target === e.target.getStage()) {
+                            setSelectedDevice(null);
+                        }
+                    }}
+                    x={position.x}
+                    y={position.y}
+                    scaleX={scale}
+                    scaleY={scale}
+                >
+                    <Layer>
+                        {image && (
+                            <KonvaImage
+                                image={image}
+                                width={imageDimensions.width}
+                                height={imageDimensions.height}
+                                x={0}
+                                y={0}
+                            />
+                        )}
+                        {/* Renderizar beacons como círculos rojos */}
+                        {beaconPositions.map((beacon, index) => (
+                            <Circle
+                                key={`beacon-${index}`}
+                                x={beacon.pixelX}
+                                y={beacon.pixelY}
+                                radius={5}
+                                fill="red"
+                                stroke="darkred"
+                                strokeWidth={2}
+                                opacity={0.75}
+                            />
+                        ))}
+
+                        {devicesData && Object.values(devicesData).map((device) => {
+                            if (!device.pos_data || !device.pos_data.x || !device.pos_data.y) return null;
+
+                            const deviceX = device.pos_data.x * scaleX;
+                            const deviceY = device.pos_data.y * scaleY;
+                            const isSelected = selectedDevice === device.device_id;
+
+                            return (
+                                <React.Fragment key={`device-${device.device_id}`}>
+                                    <Circle
+                                        x={deviceX}
+                                        y={deviceY}
+                                        radius={5}
+                                        className="animate-pulse"
+                                        fill="rgba(37, 99, 235, 1)"
+                                        stroke={isSelected ? "yellow" : "white"}
+                                        strokeWidth={isSelected ? 3 : 1}
+                                        opacity={0.9}
+                                        onClick={() => setSelectedDevice(isSelected ? null : device.device_id)}
+                                        onTap={() => setSelectedDevice(isSelected ? null : device.device_id)}
+                                    />
+                                    {isSelected && (
+                                        <Label x={deviceX} y={deviceY - 30}>
+                                            <Tag
+                                                fill="rgba(0, 0, 0, 0.8)"
+                                                pointerDirection="down"
+                                                pointerWidth={10}
+                                                pointerHeight={10}
+                                                lineJoin="round"
+                                                shadowColor="black"
+                                                shadowBlur={10}
+                                                shadowOffsetX={0}
+                                                shadowOffsetY={0}
+                                                shadowOpacity={0.5}
+                                            />
+                                            <Text
+                                                text={device.device_id}
+                                                fontFamily="Arial"
+                                                fontSize={14}
+                                                fontStyle="bold"
+                                                padding={8}
+                                                fill="white"
+                                            />
+                                        </Label>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </Layer>
+                </Stage>
+
+                {/* Información de escala */}
+                <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 px-4 py-2 rounded shadow-lg z-10">
+                    <p className="text-sm font-semibold">Escala del plano</p>
+                    <p className="text-xs text-gray-600">
+                        Dimensiones reales: {REAL_WIDTH}m × {REAL_HEIGHT}m
+                    </p>
+                    <p className="text-xs text-gray-600">
+                        Zoom: {(scale * 100).toFixed(0)}%
+                    </p>
+                    <p className="text-xs text-gray-600">
+                        Beacons: {beacons.length}
+                    </p>
+                </div>
+            </div>
+        </div>)
 }
 
 export default IndoorKonva
