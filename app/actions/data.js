@@ -87,9 +87,10 @@ function trilaterate(posData) {
   // Clampear al piso definido
   return clampToFloor({ x, y });
 }
-
-// Acotar a los límites físicos del plano
 function clampToFloor(pos) {
+  const REAL_WIDTH  = 40; // largo
+  const REAL_HEIGHT = 20; // ancho
+
   let x = pos.x;
   let y = pos.y;
 
@@ -98,6 +99,7 @@ function clampToFloor(pos) {
 
   return { x, y };
 }
+
 
 const convertBatteryLevel = (battery) => {
   return battery.split("%")[0];

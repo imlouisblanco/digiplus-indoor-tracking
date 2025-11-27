@@ -55,11 +55,10 @@ const IndoorKonva = () => {
     }, [image, containerSize.width, containerSize.height])
 
     // Convertir coordenadas de metros a píxeles del canvas
-
     const scaleX = imageDimensions.width / REAL_WIDTH;
     const scaleY = imageDimensions.height / REAL_HEIGHT;
 
-    const metersToPixels = (xM, yM) => {
+    function metersToPixels(xM, yM) {
         return {
             x: xM * scaleX,
             y: yM * scaleY, // origen abajo-izquierda
@@ -70,10 +69,10 @@ const IndoorKonva = () => {
     const beaconPositions = useMemo(() => {
         return beacons.map(beacon => ({
             ...beacon,
-            pixelX: beacon.x * metersToPixels.x,
-            pixelY: beacon.y * metersToPixels.y
+            pixelX: beacon.x * scaleX,
+            pixelY: beacon.y * scaleY
         }))
-    }, [metersToPixels.x, metersToPixels.y])
+    }, [scaleX, scaleY])
 
     // Actualizar tamaño del contenedor cuando cambia el tamaño de la ventana
     useEffect(() => {
