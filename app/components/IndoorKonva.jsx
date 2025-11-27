@@ -16,7 +16,7 @@ const IndoorKonva = () => {
     const REAL_HEIGHT = 20 // metros (ancho)
 
     // Dimensiones del contenedor
-    const [containerSize, setContainerSize] = useState({ width: 800, height: 600 })
+    const [containerSize, setContainerSize] = useState({ width: 1280, height: 720 })
     const containerRef = useRef(null)
 
     // Estado para zoom y pan
@@ -61,7 +61,7 @@ const IndoorKonva = () => {
     function metersToPixels(xM, yM) {
         return {
             x: xM * scaleX,
-            y: yM * scaleY, // origen abajo-izquierda
+            y: yM * scaleY,
         };
     }
 
@@ -173,8 +173,8 @@ const IndoorKonva = () => {
                     {devicesData && Object.values(devicesData).map((device) => device.pos_data && device.pos_data.x && device.pos_data.y && (
                         <Circle
                             key={`device-${device.device_id}`}
-                            x={device.pos_data.x * metersToPixels.x}
-                            y={device.pos_data.y * metersToPixels.y}
+                            x={device.pos_data.x * scaleX}
+                            y={device.pos_data.y * scaleY}
                             radius={10}
                             className="animate-pulse"
                             fill="rgba(37, 99, 235, 1)"
