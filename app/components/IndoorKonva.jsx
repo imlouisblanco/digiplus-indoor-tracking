@@ -189,11 +189,11 @@ const IndoorKonva = () => {
                                 <Circle
                                     x={deviceX}
                                     y={deviceY}
-                                    radius={10}
+                                    radius={5}
                                     className="animate-pulse"
                                     fill="rgba(37, 99, 235, 1)"
-                                    stroke={isSelected ? "yellow" : "darkblue"}
-                                    strokeWidth={isSelected ? 3 : 2}
+                                    stroke={isSelected ? "yellow" : "white"}
+                                    strokeWidth={isSelected ? 3 : 1}
                                     opacity={0.9}
                                     onClick={() => setSelectedDevice(isSelected ? null : device.device_id)}
                                     onTap={() => setSelectedDevice(isSelected ? null : device.device_id)}
