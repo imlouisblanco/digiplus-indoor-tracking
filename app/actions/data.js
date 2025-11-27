@@ -86,7 +86,7 @@ function trilaterate(posData) {
 }
 function clampToFloor(pos) {
   const REAL_WIDTH  = 40; // largo
-  const REAL_HEIGHT = 20; // ancho
+  const REAL_HEIGHT = 30; // ancho
 
   let x = pos.x;
   let y = pos.y;

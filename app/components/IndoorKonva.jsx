@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
-import { Stage, Layer, Image as KonvaImage, Circle } from 'react-konva'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { Stage, Layer, Image as KonvaImage, Circle, Label, Tag, Text } from 'react-konva'
 import useImage from 'use-image'
 import { beacons } from '@/lib/beacons'
 import { useRealtimePositions } from '@/hooks/useRealtimePositions'
@@ -23,6 +23,7 @@ const IndoorKonva = () => {
     const [scale, setScale] = useState(1)
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [isInitialized, setIsInitialized] = useState(false)
+    const [selectedDevice, setSelectedDevice] = useState(null)
 
     // Cargar la imagen
     const [image] = useImage('/amsa.png')
@@ -141,6 +142,12 @@ const IndoorKonva = () => {
                 height={containerSize.height}
                 onWheel={handleWheel}
                 onDragEnd={handleDragEnd}
+                onClick={(e) => {
+                    // Cerrar tooltip si se hace click fuera de un dispositivo
+                    if (e.target === e.target.getStage()) {
+                        setSelectedDevice(null);
+                    }
+                }}
                 x={position.x}
                 y={position.y}
                 scaleX={scale}
@@ -170,19 +177,54 @@ const IndoorKonva = () => {
                         />
                     ))}
 
-                    {devicesData && Object.values(devicesData).map((device) => device.pos_data && device.pos_data.x && device.pos_data.y && (
-                        <Circle
-                            key={`device-${device.device_id}`}
-                            x={device.pos_data.x * scaleX}
-                            y={device.pos_data.y * scaleY}
-                            radius={10}
-                            className="animate-pulse"
-                            fill="rgba(37, 99, 235, 1)"
-                            stroke="darkblue"
-                            strokeWidth={2}
-                            opacity={0.9}
-                        />
-                    ))}
+                    {devicesData && Object.values(devicesData).map((device) => {
+                        if (!device.pos_data || !device.pos_data.x || !device.pos_data.y) return null;
+
+                        const deviceX = device.pos_data.x * scaleX;
+                        const deviceY = device.pos_data.y * scaleY;
+                        const isSelected = selectedDevice === device.device_id;
+
+                        return (
+                            <React.Fragment key={`device-${device.device_id}`}>
+                                <Circle
+                                    x={deviceX}
+                                    y={deviceY}
+                                    radius={10}
+                                    className="animate-pulse"
+                                    fill="rgba(37, 99, 235, 1)"
+                                    stroke={isSelected ? "yellow" : "darkblue"}
+                                    strokeWidth={isSelected ? 3 : 2}
+                                    opacity={0.9}
+                                    onClick={() => setSelectedDevice(isSelected ? null : device.device_id)}
+                                    onTap={() => setSelectedDevice(isSelected ? null : device.device_id)}
+                                />
+                                {isSelected && (
+                                    <Label x={deviceX} y={deviceY - 30}>
+                                        <Tag
+                                            fill="rgba(0, 0, 0, 0.8)"
+                                            pointerDirection="down"
+                                            pointerWidth={10}
+                                            pointerHeight={10}
+                                            lineJoin="round"
+                                            shadowColor="black"
+                                            shadowBlur={10}
+                                            shadowOffsetX={0}
+                                            shadowOffsetY={0}
+                                            shadowOpacity={0.5}
+                                        />
+                                        <Text
+                                            text={device.device_id}
+                                            fontFamily="Arial"
+                                            fontSize={14}
+                                            fontStyle="bold"
+                                            padding={8}
+                                            fill="white"
+                                        />
+                                    </Label>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </Layer>
             </Stage>
 
