@@ -176,7 +176,7 @@ const IndoorKonva = () => {
                                                 {device.device_id}
                                             </p>
                                             <p className={`
-                                                text-sm font-semibold truncate
+                                                text-xs font-medium truncate
                                                 ${isSelected ? 'text-blue-700' : 'text-gray-700'}
                                             `}>
                                                 {device.device_euid}
