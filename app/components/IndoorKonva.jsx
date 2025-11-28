@@ -288,7 +288,7 @@ const IndoorKonva = () => {
                                         onTap={() => setSelectedDevice(isSelected ? null : device.device_id)}
                                     />
                                     {isSelected && (
-                                        <Label x={deviceX} y={deviceY - 30}>
+                                        <Label x={deviceX} y={deviceY - 10}>
                                             <Tag
                                                 fill="rgba(0, 0, 0, 0.8)"
                                                 pointerDirection="down"
