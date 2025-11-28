@@ -1,52 +1,10 @@
 'use client'
 import dynamic from "next/dynamic";
-import { Badge } from "@/components/ui/badge";
-import {
-    MapPinIcon,
-    CpuChipIcon,
-    ChartBarIcon
-} from '@heroicons/react/24/outline';
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 
 const IndoorKonva = dynamic(() => import("@/app/components/IndoorKonva"), {
     ssr: false
 });
-
-const updateInterval = 60000;
-
-const BeaconCard = ({ beacon, devices }) => {
-    return (
-        <div className="group flex flex-col gap-3 p-4 bg-white border-2 border-gray-100 hover:border-emerald-200 rounded-xl hover:shadow-lg transition-all duration-300">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg ${beacon.background} flex items-center justify-center shadow-md`}>
-                        <MapPinIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-bold text-gray-900">{beacon.name}</p>
-                        <Badge variant="outline" className="mt-1 text-xs">
-                            {devices.length} {devices.length !== 1 ? "dispositivos" : "dispositivo"}
-                        </Badge>
-                    </div>
-                </div>
-            </div>
-
-            {devices.length > 0 ? (
-                <div className="flex flex-col gap-2">
-                    {devices.map(device => (
-                        <div key={device.id} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
-                            <CpuChipIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                            <p className="text-sm font-medium text-gray-700">{device.device_id}</p>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="py-3 text-center">
-                    <p className="text-xs text-gray-400">Sin dispositivos</p>
-                </div>
-            )}
-        </div>
-    );
-};
 
 export default function Dashboard() {
     return (

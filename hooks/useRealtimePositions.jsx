@@ -44,25 +44,24 @@ export function useRealtimePositions() {
                     schema: 'public',
                     table: 'data'
                 },
-                (p) => {
-                    // const p = payload.new;
-                    // console.log('[New Data]', p);
-                    // setDevicesData(prev => ({
-                    //     ...prev,
-                    //     [p.device_id]: p
-                    // }));
+                (payload) => {
+                    const newData = payload.new;
+                    console.log('[New Data]', newData);
+
+                    if (!newData || !newData.device_id) return;
+
                     setDevicesData((prev) => {
-                        const prevDevice = prev[p.device_id];
+                        const prevDevice = prev[newData.device_id];
                         const prevPos = prevDevice?.pos_data;
 
                         const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
-                        const MIN_MOVE = 0.1;      // metros: ignorar cambios menores
+                        const MIN_MOVE = 0.01;      // metros: ignorar cambios menores
 
-                        let filteredPos = p.pos_data;
+                        let filteredPos = newData.pos_data;
 
-                        if (prevPos) {
-                            const dx = p.pos_data.x - prevPos.x;
-                            const dy = p.pos_data.y - prevPos.y;
+                        if (prevPos && newData.pos_data) {
+                            const dx = newData.pos_data.x - prevPos.x;
+                            const dy = newData.pos_data.y - prevPos.y;
                             const dist = Math.hypot(dx, dy);
 
                             if (dist < MIN_MOVE) {
@@ -78,8 +77,8 @@ export function useRealtimePositions() {
                         }
                         return {
                             ...prev,
-                            [p.device_id]: {
-                                ...prevDevice,
+                            [newData.device_id]: {
+                                ...newData,
                                 pos_data: filteredPos
                             }
                         };
@@ -93,19 +92,24 @@ export function useRealtimePositions() {
                     schema: 'public',
                     table: 'data'
                 },
-                (p) => {
+                (payload) => {
+                    const newData = payload.new;
+                    console.log('[Updated Data]', newData);
+
+                    if (!newData || !newData.device_id) return;
+
                     setDevicesData((prev) => {
-                        const prevDevice = prev[p.device_id];
+                        const prevDevice = prev[newData.device_id];
                         const prevPos = prevDevice?.pos_data;
 
                         const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
                         const MIN_MOVE = 0.1;      // metros: ignorar cambios menores
 
-                        let filteredPos = p.pos_data;
+                        let filteredPos = newData.pos_data;
 
-                        if (prevPos) {
-                            const dx = p.pos_data.x - prevPos.x;
-                            const dy = p.pos_data.y - prevPos.y;
+                        if (prevPos && newData.pos_data) {
+                            const dx = newData.pos_data.x - prevPos.x;
+                            const dy = newData.pos_data.y - prevPos.y;
                             const dist = Math.hypot(dx, dy);
 
                             if (dist < MIN_MOVE) {
@@ -121,8 +125,8 @@ export function useRealtimePositions() {
                         }
                         return {
                             ...prev,
-                            [p.device_id]: {
-                                ...prevDevice,
+                            [newData.device_id]: {
+                                ...newData,
                                 pos_data: filteredPos
                             }
                         };
