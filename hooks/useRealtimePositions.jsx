@@ -62,7 +62,7 @@ export function useRealtimePositions() {
                         const prevPos = prevDevice?.pos_data;
 
                         const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
-                        const MIN_MOVE = 0.01;      // metros: ignorar cambios menores
+                        const MIN_MOVE = 0.5;      // metros: ignorar cambios menores
 
                         let filteredPos = newData.pos_data;
 
@@ -110,7 +110,7 @@ export function useRealtimePositions() {
                         const prevPos = prevDevice?.pos_data;
 
                         const ALPHA = 0.25;        // suavizado (0.1 muy suave, 0.5 rápido)
-                        const MIN_MOVE = 0.1;      // metros: ignorar cambios menores
+                        const MIN_MOVE = 0.5;      // metros: ignorar cambios menores
 
                         let filteredPos = newData.pos_data;
 
