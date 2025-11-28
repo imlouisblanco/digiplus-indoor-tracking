@@ -10,7 +10,9 @@ export function useRealtimePositions() {
             try {
                 const { data, error } = await supabase
                     .from('data')
-                    .select('*');
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(100)
 
                 if (error) {
                     console.error('[Error loading initial data]', error);
