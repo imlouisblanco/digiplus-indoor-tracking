@@ -19,11 +19,16 @@ export function useRealtimePositions() {
                     return;
                 }
 
+                console.log('[Initial data]', data);
+
                 if (data && data.length > 0) {
                     // Convertir array a objeto indexado por device_id
+                    // Solo guardar el primer registro de cada device_id (el más reciente, ya que están ordenados desc)
                     const initialData = {};
                     data.forEach(item => {
-                        initialData[item.device_id] = item;
+                        if (!initialData[item.device_id]) {
+                            initialData[item.device_id] = item;
+                        }
                     });
                     setDevicesData(initialData);
                     console.log('[Initial data loaded]', initialData);
