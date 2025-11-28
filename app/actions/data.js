@@ -9,7 +9,7 @@ function getBeaconByMac(mac) {
 const REAL_WIDTH  = 40; // largo en metros
 const REAL_HEIGHT = 30; // ancho en metros
 
-const MIN_RSSI_FOR_TRILAT = -80; // más débil que esto: no muy confiable para trilaterar
+const MIN_RSSI_FOR_TRILAT = -90; // más débil que esto: no muy confiable para trilaterar
 const MAX_DISTANCE = 40;         // no tiene sentido d > tamaño del piso aprox
 const MAX_MEAN_ERROR = 5;        // metros de error promedio aceptable para trilateración
 
