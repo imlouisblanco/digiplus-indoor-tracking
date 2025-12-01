@@ -10,7 +10,7 @@ import {
   MapPinIcon,
   CpuChipIcon,
   ArrowRightIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
 const DeviceCard = ({ deviceId, data }) => {
@@ -45,7 +45,7 @@ const DeviceCard = ({ deviceId, data }) => {
 
   return (
     <div
-      className={`relative group flex flex-col gap-4 p-6 ${data
+      className={`relative group flex flex-col gap-4 p-6 ${!isDataOld(data.created_at)
         ? "bg-white border-emerald-100"
         : "bg-gray-50 border-gray-200"} border-2 shadow-lg hover:shadow-2xl rounded-2xl transition-all duration-300 hover:-translate-y-1`}
     >
@@ -182,6 +182,15 @@ export default function DevicesPage() {
     device => !devicesWithData.includes(device)
   );
 
+  if (Object.keys(devicesData).length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-100">
+        <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
+        <p className="text-lg text-gray-600 font-medium">Cargando dispositivos...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-gray-50 via-emerald-50/30 to-gray-100 min-h-screen">
       {/* Header moderno */}
@@ -201,7 +210,7 @@ export default function DevicesPage() {
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="text-sm px-4 py-2">
-            {devicesWithData.length} activos
+            {devicesWithData.length} dispositivos
           </Badge>
           {devicesWithoutData.length > 0 &&
             <Badge variant="outline" className="text-sm px-4 py-2">
