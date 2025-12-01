@@ -14,6 +14,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 const DeviceCard = ({ deviceId, data }) => {
+  const isDataOld = (date) => {
+    const twoHoursInMs = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+    return new Date(date) <= new Date(Date.now() - twoHoursInMs);
+}
 
   const getBatteryColor = battery => {
     if (battery >= 70) return "bg-gradient-to-r from-[#29f57e] to-emerald-500";
@@ -50,7 +54,7 @@ const DeviceCard = ({ deviceId, data }) => {
         <div className="flex items-center gap-3">
           <div
             className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${data
-              ? "bg-gradient-to-br from-[#29f57e] via-emerald-400 to-teal-500 shadow-emerald-200"
+              ? isDataOld(data.created_at) ? "bg-gray-300" : "bg-gradient-to-br from-[#29f57e] via-emerald-400 to-teal-500 shadow-emerald-200"
               : "bg-gray-300"}`}
           >
             <CpuChipIcon className="w-7 h-7 text-white" />
@@ -58,7 +62,7 @@ const DeviceCard = ({ deviceId, data }) => {
           <div>
             <p
               className={`font-bold text-xl ${data
-                ? "bg-gradient-to-r from-[#29f57e] via-emerald-600 to-teal-700 bg-clip-text text-transparent"
+                ? isDataOld(data.created_at) ? "text-gray-500" : "bg-gradient-to-r from-[#29f57e] via-emerald-600 to-teal-700 bg-clip-text text-transparent"
                 : "text-gray-500"}`}
             >
               {deviceId}
@@ -67,7 +71,7 @@ const DeviceCard = ({ deviceId, data }) => {
               variant={data ? "outline" : "secondary"}
               className="mt-1 text-xs"
             >
-              {data ? "Activo" : "Sin datos"}
+              {data ? isDataOld(data.created_at) ? "Inactivo" : "Activo" : "Sin datos"}
             </Badge>
           </div>
         </div>

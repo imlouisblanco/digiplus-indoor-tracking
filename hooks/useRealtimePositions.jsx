@@ -7,35 +7,15 @@ export function useRealtimePositions() {
     useEffect(() => {
         // Cargar datos iniciales
         const loadInitialData = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('data')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(100)
+            const { data } = await supabase
+                .rpc('get_latest_data_per_device')
 
-                if (error) {
-                    console.error('[Error loading initial data]', error);
-                    return;
-                }
+            const initialData = data.reduce((acc, item) => {
+                acc[item.device_id] = item;
+                return acc;
+            }, {});
 
-                console.log('[Initial data]', data);
-
-                if (data && data.length > 0) {
-                    // Convertir array a objeto indexado por device_id
-                    // Solo guardar el primer registro de cada device_id (el más reciente, ya que están ordenados desc)
-                    const initialData = {};
-                    data.forEach(item => {
-                        if (!initialData[item.device_id]) {
-                            initialData[item.device_id] = item;
-                        }
-                    });
-                    setDevicesData(initialData);
-                    console.log('[Initial data loaded]', initialData);
-                }
-            } catch (error) {
-                console.error('[Error loading initial data]', error);
-            }
+            setDevicesData(initialData);
         };
 
         // Cargar datos iniciales primero

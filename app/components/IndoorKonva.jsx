@@ -139,6 +139,11 @@ const IndoorKonva = () => {
         setSelectedDevice(selectedDevice === device.device_id ? null : device.device_id);
     }
 
+    const isDataOld = (date) => {
+        const twoHoursInMs = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+        return new Date(date) <= new Date(Date.now() - twoHoursInMs);
+    }
+
     return (
         <div className='flex flex-col lg:flex-row gap-4'>
             <div className="w-full lg:w-64 bg-white rounded-lg shadow-lg p-4 h-full lg:sticky lg:top-4">
@@ -149,24 +154,24 @@ const IndoorKonva = () => {
                             No hay dispositivos con posición
                         </p>
                     ) : (
-                        devicesWithPosition.map((device) => {
+                        devicesWithPosition.sort((a, b) => a.device_id.localeCompare(b.device_id)).map((device, index) => {
                             const isSelected = selectedDevice === device.device_id;
                             return (
                                 <div
-                                    key={device.device_id}
+                                    key={device.device_id + '-' + index}
                                     onClick={() => handleDeviceClick(device)}
                                     className={`
                                         p-3 rounded-lg cursor-pointer transition-all duration-200
                                         ${isSelected
                                             ? 'bg-blue-100 border-2 border-blue-500 shadow-md'
-                                            : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100 hover:border-gray-300'
+                                            : isDataOld(device.created_at) ? 'bg-gray-50 border-2 border-transparent hover:bg-gray-100 hover:border-gray-300' : 'bg-blue-50 border-2 border-transparent hover:bg-blue-100 hover:border-blue-300'
                                         }
                                     `}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`
                                             w-3 h-3 rounded-full flex-shrink-0
-                                            ${isSelected ? 'bg-blue-500' : 'bg-blue-400'}
+                                            ${isSelected ? 'bg-blue-500' : isDataOld(device.created_at) ? 'bg-gray-400' : ' bg-blue-400'}
                                         `} />
                                         <div className="flex-1 min-w-0">
                                             <p className={`
@@ -266,7 +271,7 @@ const IndoorKonva = () => {
                             </React.Fragment>
                         ))}
 
-                        {devicesData && Object.values(devicesData).map((device) => {
+                        {devicesData && Object.values(devicesData).map((device, index) => {
                             if (!device.pos_data || !device.pos_data.x || !device.pos_data.y) return null;
 
                             const deviceX = device.pos_data.x * scaleX;
@@ -274,13 +279,13 @@ const IndoorKonva = () => {
                             const isSelected = selectedDevice === device.device_id;
 
                             return (
-                                <React.Fragment key={`device-${device.device_id}`}>
+                                <React.Fragment key={`device-${device.device_id}-${index}`}>
                                     <Circle
                                         x={deviceX}
                                         y={deviceY}
                                         radius={5}
                                         className="animate-pulse"
-                                        fill="rgba(37, 99, 235, 1)"
+                                        fill={isDataOld(device.created_at) ? 'gray' : 'rgba(37, 99, 235, 1)'}
                                         stroke={isSelected ? "yellow" : "white"}
                                         strokeWidth={isSelected ? 3 : 1}
                                         opacity={0.9}
