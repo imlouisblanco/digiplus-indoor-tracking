@@ -5,49 +5,37 @@ import { Stage, Layer, Image as KonvaImage, Circle, Label, Tag, Text } from 'rea
 import useImage from 'use-image'
 import { beacons } from '@/lib/beacons'
 import { useRealtimePositions } from '@/hooks/useRealtimePositions'
-// Definir beacons con coordenadas en metros (x, y) relativas al plano
-// x: 0 a REAL_WIDTH (largo), y: 0 a REAL_HEIGHT (ancho)
-// Puedes agregar más beacons aquí con sus coordenadas en metros
+
+const SHOW_BEACONS = false
 
 const IndoorKonva = () => {
     const { devicesData } = useRealtimePositions()
-    // Dimensiones reales del plano en metros
-    const REAL_WIDTH = 40 // metros (largo)
-    const REAL_HEIGHT = 30 // metros (ancho)
+    const REAL_WIDTH = 40
+    const REAL_HEIGHT = 30
 
-    // Dimensiones del contenedor
     const [containerSize, setContainerSize] = useState({ width: 1280, height: 720 })
     const containerRef = useRef(null)
 
-    // Estado para zoom y pan
     const [scale, setScale] = useState(1)
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [isInitialized, setIsInitialized] = useState(false)
     const [selectedDevice, setSelectedDevice] = useState(null)
 
-    // Cargar la imagen
     const [image] = useImage('/amsa.png')
 
-    // Calcular dimensiones de la imagen manteniendo la proporción real (80m x 20m)
-    // Usar useMemo para evitar recalcular en cada render
     const imageDimensions = useMemo(() => {
         if (!image) return { width: 0, height: 0 }
 
-        // Relación de aspecto real del plano: 60m / 20m = 3:1
-        const realAspectRatio = REAL_WIDTH / REAL_HEIGHT // 4:1
+        const realAspectRatio = REAL_WIDTH / REAL_HEIGHT
 
-        // Calcular dimensiones del canvas basadas en el contenedor
         const containerAspectRatio = containerSize.width / containerSize.height
 
         let canvasWidth, canvasHeight
 
-        // Ajustar para que quepa en el contenedor manteniendo la proporción real
         if (containerAspectRatio > realAspectRatio) {
-            // El contenedor es más ancho, ajustar por altura
             canvasHeight = containerSize.height * 0.9
             canvasWidth = canvasHeight * realAspectRatio
         } else {
-            // El contenedor es más alto, ajustar por ancho
             canvasWidth = containerSize.width * 0.9
             canvasHeight = canvasWidth / realAspectRatio
         }
@@ -55,11 +43,9 @@ const IndoorKonva = () => {
         return { width: canvasWidth, height: canvasHeight }
     }, [image, containerSize.width, containerSize.height])
 
-    // Convertir coordenadas de metros a píxeles del canvas
     const scaleX = imageDimensions.width / REAL_WIDTH;
     const scaleY = imageDimensions.height / REAL_HEIGHT;
 
-    // Calcular posiciones de los beacons en píxeles
     const beaconPositions = useMemo(() => {
         return beacons.map(beacon => ({
             ...beacon,
@@ -68,7 +54,6 @@ const IndoorKonva = () => {
         }))
     }, [scaleX, scaleY])
 
-    // Actualizar tamaño del contenedor cuando cambia el tamaño de la ventana
     useEffect(() => {
         const updateSize = () => {
             if (containerRef.current) {
@@ -84,7 +69,6 @@ const IndoorKonva = () => {
         return () => window.removeEventListener('resize', updateSize)
     }, [])
 
-    // Manejar zoom con la rueda del mouse
     const handleWheel = (e) => {
         e.evt.preventDefault()
 
@@ -107,7 +91,6 @@ const IndoorKonva = () => {
         })
     }
 
-    // Manejar drag para pan
     const handleDragEnd = (e) => {
         setPosition({
             x: e.target.x(),
@@ -115,7 +98,6 @@ const IndoorKonva = () => {
         })
     }
 
-    // Centrar la imagen al cargar (solo una vez)
     useEffect(() => {
         if (image && imageDimensions.width > 0 && !isInitialized) {
             const centerX = (containerSize.width - imageDimensions.width) / 2
@@ -125,7 +107,6 @@ const IndoorKonva = () => {
         }
     }, [image, imageDimensions.width, imageDimensions.height, containerSize.width, containerSize.height, isInitialized])
 
-    // Filtrar dispositivos que tienen posición válida
     const devicesWithPosition = useMemo(() => {
         if (!devicesData) return [];
         return Object.values(devicesData).filter(
@@ -234,8 +215,8 @@ const IndoorKonva = () => {
                                 y={0}
                             />
                         )}
-                        {/* Renderizar beacons como círculos rojos */}
-                        {beaconPositions.map((beacon, index) => (
+
+                        {SHOW_BEACONS && beaconPositions.map((beacon, index) => (
                             <React.Fragment key={`beacon-${index}`}>
                                 <Circle
                                     key={`beacon-${index}`}
@@ -322,7 +303,6 @@ const IndoorKonva = () => {
                     </Layer>
                 </Stage>
 
-                {/* Información de escala */}
                 <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 px-4 py-2 rounded shadow-lg z-10">
                     <p className="text-sm font-semibold">Escala del plano</p>
                     <p className="text-xs text-gray-600">
@@ -331,9 +311,9 @@ const IndoorKonva = () => {
                     <p className="text-xs text-gray-600">
                         Zoom: {(scale * 100).toFixed(0)}%
                     </p>
-                    <p className="text-xs text-gray-600">
+                    {SHOW_BEACONS && <p className="text-xs text-gray-600">
                         Beacons: {beacons.length}
-                    </p>
+                    </p>}
                 </div>
             </div>
         </div>)

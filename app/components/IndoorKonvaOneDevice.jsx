@@ -6,52 +6,40 @@ import useImage from 'use-image'
 import { beacons } from '@/lib/beacons'
 import { PlayIcon, PauseIcon, StopIcon, ForwardIcon, BackwardIcon } from '@heroicons/react/24/solid'
 
-// Componente para visualizar un dispositivo con animación de recorrido histórico
+const SHOW_BEACONS = false
 
 const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
-    // Dimensiones reales del plano en metros
-    const REAL_WIDTH = 40 // metros (largo)
-    const REAL_HEIGHT = 30 // metros (ancho)
+    const REAL_WIDTH = 40
+    const REAL_HEIGHT = 30
 
-    // Dimensiones del contenedor
     const [containerSize, setContainerSize] = useState({ width: 1280, height: 720 })
     const containerRef = useRef(null)
 
-    // Estado para zoom y pan
     const [scale, setScale] = useState(1)
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [isInitialized, setIsInitialized] = useState(false)
     const [selectedDevice, setSelectedDevice] = useState(null)
 
-    // Estados para la animación del recorrido
     const [isPlaying, setIsPlaying] = useState(false)
     const [currentIndex, setCurrentIndex] = useState(historyData.length > 0 ? historyData.length - 1 : 0)
-    const [animationSpeed, setAnimationSpeed] = useState(1000) // ms entre frames
+    const [animationSpeed, setAnimationSpeed] = useState(1000)
     const animationRef = useRef(null)
 
-    // Cargar la imagen
     const [image] = useImage('/amsa.png')
 
-    // Calcular dimensiones de la imagen manteniendo la proporción real (80m x 20m)
-    // Usar useMemo para evitar recalcular en cada render
     const imageDimensions = useMemo(() => {
         if (!image) return { width: 0, height: 0 }
 
-        // Relación de aspecto real del plano: 60m / 20m = 3:1
-        const realAspectRatio = REAL_WIDTH / REAL_HEIGHT // 4:1
+        const realAspectRatio = REAL_WIDTH / REAL_HEIGHT
 
-        // Calcular dimensiones del canvas basadas en el contenedor
         const containerAspectRatio = containerSize.width / containerSize.height
 
         let canvasWidth, canvasHeight
 
-        // Ajustar para que quepa en el contenedor manteniendo la proporción real
         if (containerAspectRatio > realAspectRatio) {
-            // El contenedor es más ancho, ajustar por altura
             canvasHeight = containerSize.height * 0.9
             canvasWidth = canvasHeight * realAspectRatio
         } else {
-            // El contenedor es más alto, ajustar por ancho
             canvasWidth = containerSize.width * 0.9
             canvasHeight = canvasWidth / realAspectRatio
         }
@@ -59,11 +47,9 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         return { width: canvasWidth, height: canvasHeight }
     }, [image, containerSize.width, containerSize.height])
 
-    // Convertir coordenadas de metros a píxeles del canvas
     const scaleX = imageDimensions.width / REAL_WIDTH;
     const scaleY = imageDimensions.height / REAL_HEIGHT;
 
-    // Calcular posiciones de los beacons en píxeles
     const beaconPositions = useMemo(() => {
         return beacons.map(beacon => ({
             ...beacon,
@@ -72,7 +58,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         }))
     }, [scaleX, scaleY])
 
-    // Actualizar tamaño del contenedor cuando cambia el tamaño de la ventana
     useEffect(() => {
         const updateSize = () => {
             if (containerRef.current) {
@@ -88,7 +73,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         return () => window.removeEventListener('resize', updateSize)
     }, [])
 
-    // Manejar zoom con la rueda del mouse
     const handleWheel = (e) => {
         e.evt.preventDefault()
 
@@ -111,7 +95,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         })
     }
 
-    // Manejar drag para pan
     const handleDragEnd = (e) => {
         setPosition({
             x: e.target.x(),
@@ -119,7 +102,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         })
     }
 
-    // Centrar la imagen al cargar (solo una vez)
     useEffect(() => {
         if (image && imageDimensions.width > 0 && !isInitialized) {
             const centerX = (containerSize.width - imageDimensions.width) / 2
@@ -129,29 +111,9 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         }
     }, [image, imageDimensions.width, imageDimensions.height, containerSize.width, containerSize.height, isInitialized])
 
-    // Filtrar dispositivos que tienen posición válida
-    const devicesWithPosition = useMemo(() => {
-        if (!data) return [];
-        return Object.values(data).filter(
-            device => device.pos_data && device.pos_data.x && device.pos_data.y
-        );
-    }, [data])
 
-    // Función para seleccionar un dispositivo desde la lista (sin mover el plano)
-    const handleDeviceClick = (device) => {
-        // Si ya está seleccionado, deseleccionarlo; si no, seleccionarlo
-        setSelectedDevice(selectedDevice === device.device_id ? null : device.device_id);
-    }
-
-    const isDataOld = (date) => {
-        const twoHoursInMs = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
-        return new Date(date) <= new Date(Date.now() - twoHoursInMs);
-    }
-
-    // Posición actual del dispositivo (última posición o la del índice actual de animación)
     const currentPosition = useMemo(() => {
         if (historyData.length === 0) {
-            // Usar la data más reciente si no hay historial
             if (data && data[0] && data[0].pos_data) {
                 return data[0].pos_data;
             }
@@ -160,13 +122,11 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         return historyData[currentIndex]?.pos_data || null;
     }, [historyData, currentIndex, data]);
 
-    // Datos del punto actual de la animación
     const currentAnimationData = useMemo(() => {
         if (historyData.length === 0) return data?.[0] || null;
         return historyData[currentIndex] || null;
     }, [historyData, currentIndex, data]);
 
-    // Puntos del recorrido hasta el punto actual (para dibujar la línea)
     const pathPoints = useMemo(() => {
         if (historyData.length === 0) return [];
         const points = [];
@@ -180,11 +140,9 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         return points;
     }, [historyData, currentIndex, scaleX, scaleY]);
 
-    // Control de animación
     const playAnimation = useCallback(() => {
         if (historyData.length === 0) return;
         setIsPlaying(true);
-        // Si está al final, reiniciar
         if (currentIndex >= historyData.length - 1) {
             setCurrentIndex(0);
         }
@@ -202,7 +160,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         if (animationRef.current) {
             clearInterval(animationRef.current);
         }
-        // Volver a la última posición (más reciente)
         setCurrentIndex(historyData.length > 0 ? historyData.length - 1 : 0);
     }, [historyData.length]);
 
@@ -218,7 +175,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         }
     }, [currentIndex]);
 
-    // Efecto para la animación automática
     useEffect(() => {
         if (isPlaying && historyData.length > 0) {
             animationRef.current = setInterval(() => {
@@ -239,7 +195,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
         };
     }, [isPlaying, animationSpeed, historyData.length]);
 
-    // Actualizar currentIndex cuando cambia historyData
     useEffect(() => {
         if (historyData.length > 0 && !isPlaying) {
             setCurrentIndex(historyData.length - 1);
@@ -248,7 +203,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
 
     return (
         <div className='w-full min-h-[600px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden'>
-            {/* Controles de animación */}
             {historyData.length > 1 && (
                 <div className="bg-gradient-to-r from-[#29f57e] via-emerald-500 to-teal-600 p-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -260,7 +214,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {/* Botón retroceder */}
                             <button
                                 onClick={stepBackward}
                                 disabled={currentIndex === 0 || isPlaying}
@@ -269,7 +222,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                                 <BackwardIcon className="w-5 h-5 text-white" />
                             </button>
 
-                            {/* Botón play/pause */}
                             {isPlaying ? (
                                 <button
                                     onClick={pauseAnimation}
@@ -286,7 +238,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                                 </button>
                             )}
 
-                            {/* Botón stop */}
                             <button
                                 onClick={stopAnimation}
                                 className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
@@ -294,7 +245,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                                 <StopIcon className="w-5 h-5 text-white" />
                             </button>
 
-                            {/* Botón avanzar */}
                             <button
                                 onClick={stepForward}
                                 disabled={currentIndex >= historyData.length - 1 || isPlaying}
@@ -304,7 +254,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                             </button>
                         </div>
 
-                        {/* Selector de velocidad */}
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-white/80">Velocidad:</span>
                             <select
@@ -320,7 +269,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                         </div>
                     </div>
 
-                    {/* Barra de progreso */}
                     <div className="mt-4">
                         <input
                             type="range"
@@ -360,7 +308,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                     onWheel={handleWheel}
                     onDragEnd={handleDragEnd}
                     onClick={(e) => {
-                        // Cerrar tooltip si se hace click fuera de un dispositivo
                         if (e.target === e.target.getStage()) {
                             setSelectedDevice(null);
                         }
@@ -380,8 +327,7 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                                 y={0}
                             />
                         )}
-                        {/* Renderizar beacons como círculos rojos */}
-                        {beaconPositions.map((beacon, index) => (
+                        {SHOW_BEACONS && beaconPositions.map((beacon, index) => (
                             <React.Fragment key={`beacon-${index}`}>
                                 <Circle
                                     key={`beacon-${index}`}
@@ -417,7 +363,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                             </React.Fragment>
                         ))}
 
-                        {/* Línea del recorrido */}
                         {pathPoints.length >= 4 && (
                             <Line
                                 points={pathPoints}
@@ -429,7 +374,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                             />
                         )}
 
-                        {/* Puntos históricos del recorrido (círculos pequeños) */}
                         {historyData.slice(0, currentIndex).map((item, index) => {
                             if (!item.pos_data?.x || !item.pos_data?.y) return null;
                             return (
@@ -445,7 +389,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                             );
                         })}
 
-                        {/* Posición actual del dispositivo */}
                         {currentPosition && currentPosition.x && currentPosition.y && (
                             <React.Fragment>
                                 <Circle
@@ -460,7 +403,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                                     shadowOffsetX={0}
                                     shadowOffsetY={0}
                                 />
-                                {/* Label con información */}
                                 <Label x={currentPosition.x * scaleX} y={currentPosition.y * scaleY - 20}>
                                     <Tag
                                         fill="rgba(0, 0, 0, 0.85)"
@@ -500,7 +442,6 @@ const IndoorKonvaOneDevice = ({ data, historyData = [] }) => {
                     )}
                 </div>
 
-                {/* Indicador de estado de animación */}
                 {historyData.length > 1 && (
                     <div className="absolute top-4 right-4 bg-white bg-opacity-95 px-4 py-2 rounded-lg shadow-lg z-10">
                         <p className="text-xs text-gray-500">
