@@ -126,6 +126,11 @@ function estimatePosition(posData) {
     return null;
   }
 
+  if (readingsAll.some(item => !item)) {
+    console.log("Some readings are invalid");
+    return null;
+  }
+
   // Centroide siempre disponible
   const centroid = centroidPosition(readingsAll);
 
@@ -183,11 +188,18 @@ export const insertData = async (deviceId, data) => {
     return;
   }
 
+  const estimatedPosition = estimatePosition(posData);
+
+  if (!estimatedPosition) {
+    console.log("No estimated position - skipping data insertion");
+    return;
+  }
+
   const { error } = await supabase.from("data").insert({
     device_id: deviceId,
     device_euid: deviceEuid,
     battery: battery ? parseInt(convertBatteryLevel(battery)) : null,
-    pos_data: estimatePosition(posData),
+    pos_data: estimatedPosition,
     values: posData
   });
 
