@@ -24,9 +24,48 @@ export default function DeviceDetails({ id, data }) {
     const [historyData, setHistoryData] = useState(data);
     const itemsPerPage = 10;
 
+    // Calcular distancia entre dos puntos en metros
+    const calculateDistance = (pos1, pos2) => {
+        if (!pos1 || !pos2) return Infinity;
+        const dx = pos1.x - pos2.x;
+        const dy = pos1.y - pos2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    // Filtrar puntos para mostrar solo movimientos significativos (> 1.5m)
+    const filterSignificantMovements = (data, minDistance = 1.5) => {
+        if (!data || data.length === 0) return [];
+
+        // Filtrar solo puntos con posición válida
+        const validPoints = data.filter(item => item.pos_data && item.pos_data.x && item.pos_data.y);
+        if (validPoints.length === 0) return [];
+
+        // Ordenar por fecha descendente (más reciente primero)
+        const sortedDesc = [...validPoints].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        // Siempre incluir el punto más reciente
+        const significantPoints = [sortedDesc[0]];
+        let lastIncludedPos = sortedDesc[0].pos_data;
+
+        // Iterar hacia atrás (desde el segundo punto más reciente)
+        for (let i = 1; i < sortedDesc.length; i++) {
+            const currentPos = sortedDesc[i].pos_data;
+            const distance = calculateDistance(currentPos, lastIncludedPos);
+
+            // Solo incluir si se movió más de minDistance metros
+            if (distance >= minDistance) {
+                significantPoints.push(sortedDesc[i]);
+                lastIncludedPos = currentPos;
+            }
+        }
+
+        // Invertir para tener orden cronológico (más antiguo primero)
+        return significantPoints.reverse();
+    };
+
     const fetchHistoryData = async (startDate, endDate) => {
         const data = await getDeviceDataByDate({ deviceId: id, startDate: startDate, endDate: endDate });
-        setHistoryData(data);
+        setHistoryData(filterSignificantMovements(data));
     };
 
     useEffect(() => {
@@ -178,7 +217,7 @@ export default function DeviceDetails({ id, data }) {
 
             <IndoorKonvaOneDevice
                 data={data}
-                historyData={historyData.filter(item => item.pos_data && item.pos_data.x && item.pos_data.y).sort((a, b) => new Date(a.created_at) - new Date(b.created_at))}
+                historyData={historyData}
             />
         </div >
     );
