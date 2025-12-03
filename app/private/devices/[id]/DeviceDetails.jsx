@@ -32,8 +32,8 @@ export default function DeviceDetails({ id, data }) {
         return Math.sqrt(dx * dx + dy * dy);
     };
 
-    // Filtrar puntos para mostrar solo movimientos significativos (> 1.5m)
-    const filterSignificantMovements = (data, minDistance = 1.5) => {
+    // Filtrar puntos para mostrar solo movimientos significativos (> 3m)
+    const filterSignificantMovements = (data, minDistance = 3) => {
         if (!data || data.length === 0) return [];
 
         // Filtrar solo puntos con posición válida
