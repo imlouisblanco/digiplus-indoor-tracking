@@ -20,7 +20,7 @@ import Image from "next/image";
 
 export default function DeviceDetails({ id, data }) {
     const [currentPage, setCurrentPage] = useState(1);
-    const [timeFilter, setTimeFilter] = useState('12h');
+    const [timeFilter, setTimeFilter] = useState('5m');
     const [historyData, setHistoryData] = useState(data);
     const itemsPerPage = 10;
 
@@ -69,7 +69,7 @@ export default function DeviceDetails({ id, data }) {
     };
 
     useEffect(() => {
-        let startDate = new Date(new Date().getTime() - 12 * 60 * 60 * 1000);
+        let startDate = new Date(new Date().getTime() - 5 * 60 * 1000);
         let endDate = new Date();
         if (timeFilter === '12h') {
             startDate = new Date(new Date().getTime() - 12 * 60 * 60 * 1000);
@@ -79,6 +79,15 @@ export default function DeviceDetails({ id, data }) {
             endDate = new Date();
         } else if (timeFilter === '48h') {
             startDate = new Date(new Date().getTime() - 48 * 60 * 60 * 1000);
+            endDate = new Date();
+        } else if (timeFilter === '20m') {
+            startDate = new Date(new Date().getTime() - 20 * 60 * 1000);
+            endDate = new Date();
+        } else if (timeFilter === '5m') {
+            startDate = new Date(new Date().getTime() - 5 * 60 * 1000);
+            endDate = new Date();
+        } else if (timeFilter === '1h') {
+            startDate = new Date(new Date().getTime() - 1 * 60 * 1000);
             endDate = new Date();
         }
         fetchHistoryData(startDate, endDate);
