@@ -11,6 +11,7 @@ export default function TimeFilter({
     const filters = [
         { value: '5m', label: 'Últimos 5 minutos' },
         { value: '20m', label: 'Últimos 20 minutos' },
+        { value: '40m', label: 'Últimos 40 minutos' },
         { value: '1h', label: 'Última hora' },
         { value: '12h', label: 'Últimas 12 horas' },
         // { value: '24h', label: 'Últimas 24 horas' },

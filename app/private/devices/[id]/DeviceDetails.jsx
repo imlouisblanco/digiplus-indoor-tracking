@@ -87,7 +87,10 @@ export default function DeviceDetails({ id, data }) {
             startDate = new Date(new Date().getTime() - 5 * 60 * 1000);
             endDate = new Date();
         } else if (timeFilter === '1h') {
-            startDate = new Date(new Date().getTime() - 1 * 60 * 1000);
+            startDate = new Date(new Date().getTime() - 60 * 60 * 1000);
+            endDate = new Date();
+        } else if (timeFilter === '40m') {
+            startDate = new Date(new Date().getTime() - 40 * 60 * 1000);
             endDate = new Date();
         }
         fetchHistoryData(startDate, endDate);
