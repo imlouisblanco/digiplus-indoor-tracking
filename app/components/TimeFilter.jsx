@@ -9,10 +9,10 @@ export default function TimeFilter({
     filteredCount
 }) {
     const filters = [
-        { value: '12h', label: 'Últimas 12 horas' },
-        { value: '20m', label: 'Últimos 20 minutos' },
         { value: '5m', label: 'Últimos 5 minutos' },
+        { value: '20m', label: 'Últimos 20 minutos' },
         { value: '1h', label: 'Última hora' },
+        { value: '12h', label: 'Últimas 12 horas' },
         // { value: '24h', label: 'Últimas 24 horas' },
         // { value: '48h', label: 'Últimas 48 horas' }
     ]
